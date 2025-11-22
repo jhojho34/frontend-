@@ -195,33 +195,44 @@ function limparFiltros() {
 
 // Event Listeners (script.js)
 document.addEventListener('DOMContentLoaded', function () {
-    // Carregar promoções iniciais
-    carregarPromocoes();
 
-    // A CORREÇÃO ESTÁ AQUI (Linha 265)
-    const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
-    const limparFiltrosBtn = document.getElementById('limpar-filtros');
+    // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (onde existe o contêiner de promoções)
+    const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (aplicarFiltrosBtn) {
-        aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes); // Linha 266
-    }
-    if (limparFiltrosBtn) {
-        limparFiltrosBtn.addEventListener('click', limparFiltros);
-    }
+    if (promocoesContainer) { 
+        
+        // A. Carregar promoções iniciais (correto, só roda se o container existir)
+        carregarPromocoes(); 
 
-    // Adicionar animação suave ao rolar para as seções
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
+        // B. Elementos de Filtro e seus Listeners
+        const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
+        const limparFiltrosBtn = document.getElementById('limpar-filtros');
+
+        if (aplicarFiltrosBtn) {
+            aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes);
+        }
+        if (limparFiltrosBtn) {
+            limparFiltrosBtn.addEventListener('click', limparFiltros);
+        }
+
+        // C. Adicionar animação suave ao rolar para as seções (Âncoras)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
         });
-    });
+    } 
+    
+    // NOTA: A inicialização do Painel do Administrador (inicializarPainel) 
+    // está corretamente isolada em outro bloco logo abaixo, usando:
+    // if (document.title.includes('Painel do Administrador')) { inicializarPainel(); }
 });
 
 // Conteúdo do script-senha.js
