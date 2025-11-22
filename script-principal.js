@@ -196,8 +196,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const limparFiltrosBtn = document.getElementById('limpar-filtros');
 
     // O erro estava aqui, porque esses botões só existem em index.html
-    if (aplicarFiltrosBtn) {
-        aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes);
+    if (aplicarFiltrosBtn) { 
+        aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes); // Linha 266
     }
     if (limparFiltrosBtn) {
         limparFiltrosBtn.addEventListener('click', limparFiltros);
