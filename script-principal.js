@@ -8,6 +8,81 @@ function calcularDesconto(precoAntigo, precoNovo) {
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
 
+
+// =======================================================
+// FUNÇÃO CENTRALIZADA PARA EXIBIR NOTIFICAÇÕES (TOAST/MODAL)
+// =======================================================
+
+/**
+ * Exibe uma notificação estilizada no topo da tela.
+ * @param {string} message A mensagem a ser exibida.
+ * @param {string} type O tipo de alerta (success, error, warning).
+ */
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+
+    // Se o container não existir, crie-o no body.
+    if (!toastContainer) {
+        const container = document.createElement('div');
+        container.id = 'toast-container';
+        container.style.position = 'fixed';
+        container.style.top = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '1050';
+        document.body.appendChild(container);
+    }
+
+    // Mapeia o tipo para as classes Bootstrap
+    let alertClass;
+    let iconClass;
+
+    switch (type) {
+        case 'success':
+            alertClass = 'alert-success';
+            iconClass = 'bi-check-circle-fill';
+            break;
+        case 'error':
+            alertClass = 'alert-danger';
+            iconClass = 'bi-x-octagon-fill';
+            break;
+        case 'warning':
+            alertClass = 'alert-warning';
+            iconClass = 'bi-exclamation-triangle-fill';
+            break;
+        case 'info':
+        default:
+            alertClass = 'alert-info';
+            iconClass = 'bi-info-circle-fill';
+            break;
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `alert ${alertClass} alert-dismissible fade show custom-toast`;
+    toast.role = 'alert';
+    toast.innerHTML = `
+        <i class="bi ${iconClass} me-2"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+
+    // Anexa e exibe
+    document.getElementById('toast-container').appendChild(toast);
+
+    // Remove após 5 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hide'); // Para dar um fade out suave
+        setTimeout(() => toast.remove(), 500);
+    }, 5000);
+}
+// Exporta para uso em onclick/eventos
+window.showToast = showToast;
+
+// =======================================================
+// TERMINO DA FUNÇÃO CENTRALIZADA PARA EXIBIR NOTIFICAÇÕES (TOAST/MODAL)
+// =======================================================
+
+
 // Função para formatar preço em Real
 function formatarPreco(preco) {
     return new Intl.NumberFormat('pt-BR', {
@@ -26,22 +101,22 @@ async function carregarPromocoes(promocoesParaExibir = null) {
         try {
             // Rota pública para carregar produtos
             const response = await fetch('/api/promocoes');
-            
+
             if (!response.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
-            
+
             // Atualiza a variável global 'promocoes' com os dados do banco
-            promocoes = await response.json(); 
+            promocoes = await response.json();
             promocoesParaExibir = promocoes;
 
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
             container.innerHTML = '<div class="alert alert-danger" role="alert">Não foi possível carregar as promoções. Verifique o servidor.</div>';
-            return; 
+            return;
         }
-    } 
-    
+    }
+
     container.innerHTML = ''; // Limpa o container antes de renderizar
 
     if (promocoesParaExibir.length === 0) {
@@ -51,7 +126,7 @@ async function carregarPromocoes(promocoesParaExibir = null) {
 
     // A partir daqui, a lógica de renderização é executada
     promocoesParaExibir.forEach(promocao => {
-        const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo); 
+        const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
@@ -199,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Validação simples de e-mail
         if (!isValidEmail(email)) {
-            showError(emailError, 'Por favor, insira um e-mail válido.');
+            showToast('Por favor, insira um e-mail válido.', 'error');
             return;
         }
 
@@ -207,8 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Em um sistema real, aqui seria feita uma requisição para o backend
         if (email === 'ferreirajho400@gmail.com') {
             // E-mail encontrado
-            hideAlert(emailError);
-            showAlert(emailSuccess);
+            showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
 
             // Simular envio do código (em um sistema real, seria enviado por e-mail)
             setTimeout(() => {
@@ -222,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } else {
             // E-mail não encontrado
-            showError(emailError, 'E-mail não encontrado em nossa base de dados.');
+            showToast('E-mail não encontrado em nossa base de dados.', 'error');
         }
     });
 
@@ -234,8 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Verificar se o código está correto
         if (code === codigoCorreto) {
-            hideAlert(codeError);
-            showAlert(codeSuccess);
+            showToast('Código verificado! Redirecionando para redefinição.', 'success');
 
             // Redirecionar após alguns segundos
             setTimeout(() => {
@@ -243,7 +316,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 2000);
 
         } else {
-            showError(codeError, 'Código incorreto. Tente novamente.');
+            showToast('Código incorreto. Tente novamente.', 'error');
         }
     });
 
@@ -254,8 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (countdownActive) return;
 
         // Simular reenvio do código
-        hideAlert(codeError);
-        showAlert(codeSuccess, 'Novo código enviado! Verifique sua caixa de entrada.');
+        showToast('Novo código enviado! Verifique sua caixa de entrada.', 'success');
 
         // Reiniciar contador
         startCountdown();
@@ -270,33 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    }
-
-    // Função para mostrar alerta de erro
-    function showError(alertElement, message) {
-        const messageElement = alertElement.querySelector('span');
-        messageElement.textContent = message;
-        alertElement.classList.remove('d-none');
-
-        // Rolagem suave para o alerta
-        alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Função para mostrar alerta de sucesso
-    function showAlert(alertElement, message = null) {
-        if (message) {
-            const messageElement = alertElement.querySelector('span');
-            messageElement.textContent = message;
-        }
-        alertElement.classList.remove('d-none');
-
-        // Rolagem suave para o alerta
-        alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Função para ocultar alerta
-    function hideAlert(alertElement) {
-        alertElement.classList.add('d-none');
     }
 
     // Função para iniciar contador de reenvio
@@ -334,7 +379,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     emailInput.addEventListener('input', function () {
         if (!emailError.classList.contains('d-none')) {
-            hideAlert(emailError);
+            showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
         }
         if (!emailSuccess.classList.contains('d-none')) {
             hideAlert(emailSuccess);
@@ -369,24 +414,24 @@ let adminData = JSON.parse(localStorage.getItem('adminData')) || {
 
 // Inicialização
 // document.addEventListener('DOMContentLoaded', function () {
-    // Adicione a verificação de token para segurança inicial
+// Adicione a verificação de token para segurança inicial
 //     if (!getToken()) {
 //         alert('Você precisa estar logado para acessar o painel.');
 //         window.location.href = 'loginadm.html';
 //         return;
 //     }
-    
+
 //     const formConfig = document.getElementById('form-config-admin');
 //     formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
-    
+
 //     carregarDadosAdmin();
 //     inicializarNavegacao();
 //     inicializarFormularios();
-    
-    // Agora, carrega a lista e, SÓ DEPOIS, atualiza o Dashboard/Cliques
+
+// Agora, carrega a lista e, SÓ DEPOIS, atualiza o Dashboard/Cliques
 //     carregarPromocoesNaTabela(); 
-    
-    // A função carregarCliquesNaTabela será chamada dentro de carregarPromocoesNaTabela()
+
+// A função carregarCliquesNaTabela será chamada dentro de carregarPromocoesNaTabela()
 // });
 
 // Navegação entre abas
@@ -397,10 +442,10 @@ function inicializarNavegacao() {
 
     navLinks.forEach(link => {
         link.addEventListener('click', function (e) {
-            
+
             // Verifica se o link tem o atributo data-section para navegação interna
             if (!this.getAttribute('data-section')) {
-                 return; // Sai da função, permitindo que links sem data-section (como o de Sair) executem sua ação padrão (ou o onclick)
+                return; // Sai da função, permitindo que links sem data-section (como o de Sair) executem sua ação padrão (ou o onclick)
             }
 
             e.preventDefault(); // Impede navegação padrão, só se for uma seção interna
@@ -428,14 +473,14 @@ function inicializarNavegacao() {
 function fazerLogout(e) {
     // 1. Limpa o token de autenticação (ESSENCIAL para deslogar)
     localStorage.removeItem('authToken');
-    
+
     // 2. Redireciona para a página de login ou a página inicial
-    window.location.href = 'loginadm.html'; 
-    
+    window.location.href = 'loginadm.html';
+
     // NOTA: Não precisa de e.preventDefault() aqui, mas é uma boa prática
     // para o caso de ter sido chamado via onclick com href="#".
     if (e) {
-        e.preventDefault(); 
+        e.preventDefault();
     }
 }
 
@@ -469,11 +514,11 @@ function atualizarEstatisticas() {
     promocoesPainel.forEach(promocao => {
         // 🚨 AJUSTE PRINCIPAL: Busca os cliques usando promocao._id
         const cliquesProduto = cliques[promocao._id] ? cliques[promocao._id].total : 0;
-        
+
         if (cliquesProduto > maxCliques) {
             maxCliques = cliquesProduto;
             // 🚨 AJUSTE PRINCIPAL: Usa promocao.titulo para o nome do produto
-            produtoMaisClicado = promocao.titulo; 
+            produtoMaisClicado = promocao.titulo;
         }
     });
 
@@ -505,7 +550,7 @@ function inicializarGraficoCliques() {
         labels.push(date.toLocaleDateString('pt-BR'));
         data.push(Math.floor(Math.random() * 50) + 10);
     }
-    
+
     // SOLUÇÃO 2: Armazenar a nova instância
     clicksChartInstance = new Chart(ctx, { // <<< ARMAZENA NA GLOBAL
         type: 'line',
@@ -644,7 +689,7 @@ function limparFormularioCadastro() {
     document.getElementById('produto-id-hidden').value = '';
     // Garante que o campo id-hidden seja limpo:
     const idHidden = document.getElementById('produto-id-hidden');
-    if(idHidden) idHidden.value = '';
+    if (idHidden) idHidden.value = '';
 }
 
 // NOVO: Função de inicialização exclusiva para o PAINEL
@@ -653,22 +698,22 @@ function inicializarPainel() {
 
     // 🚨 BLOQUEIO DE SEGURANÇA ISOLADO
     if (!token) {
-         alert('Você precisa estar logado para acessar o painel.');
-         window.location.href = 'loginadm.html';
-         return; 
+        showToast('Você precisa estar logado para acessar o painel.', 'error');
+        window.location.href = 'loginadm.html';
+        return;
     }
 
     // O código abaixo só será executado se o token existir
     // Anexa o listener de Configurações AQUI, dentro da segurança:
     const formConfig = document.getElementById('form-config-admin');
     formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
-    
+
     carregarDadosAdmin();
     inicializarNavegacao();
     inicializarDashboard();
     inicializarFormularios(); // Inicia os listeners dos outros formulários
-    carregarPromocoesNaTabela(); 
-    carregarCliquesNaTabela(); 
+    carregarPromocoesNaTabela();
+    carregarCliquesNaTabela();
 }
 
 
@@ -688,7 +733,7 @@ async function cadastrarPromocao() {
     const idEdicao = document.getElementById('produto-id-hidden').value;
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
     const urlApi = idEdicao ? `/api/promocoes/${idEdicao}` : '/api/promocoes';
-    
+
     // 1. Coleta dos dados (permanece igual)
     const nome = document.getElementById('produto-nome').value;
     const categoria = document.getElementById('produto-categoria').value;
@@ -701,13 +746,13 @@ async function cadastrarPromocao() {
 
     const token = getToken();
     if (!token) {
-        alert('Sessão expirada. Faça login novamente.');
+        showToast('Sessão expirada. Faça login novamente.', 'error');
         window.location.href = 'loginadm.html';
         return;
     }
 
     const dadosPromocao = {
-        titulo: nome, 
+        titulo: nome,
         categoria,
         descricao,
         precoAntigo,
@@ -722,17 +767,17 @@ async function cadastrarPromocao() {
             method: metodoHttp,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(dadosPromocao)
         });
 
         if (response.status === 401) {
-            alert('Não autorizado. Redirecionando para login.');
+            showToast('Não autorizado. Redirecionando para login.', 'error');
             window.location.href = 'loginadm.html';
             return;
         }
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Erro desconhecido ao salvar.');
@@ -740,13 +785,13 @@ async function cadastrarPromocao() {
 
         // 2. Ação de sucesso
         const acao = idEdicao ? 'atualizada' : 'cadastrada';
-        
+
         // Limpar o formulário e o ID oculto
-        limparFormularioCadastro(); 
-        
+        limparFormularioCadastro();
+
         // Recarrega a tabela do painel
-        await carregarPromocoesNaTabela(); 
-        atualizarEstatisticas(); 
+        await carregarPromocoesNaTabela();
+        atualizarEstatisticas();
 
         // --- CORREÇÃO: RECARREGAR A LISTA DA PÁGINA INICIAL ---
         // Isso garante que, se o admin visitar o index.html, o produto estará lá.
@@ -756,11 +801,11 @@ async function cadastrarPromocao() {
         }
         // ----------------------------------------------------
 
-        alert(`Promoção ${acao} com sucesso!`);
+        showToast(`Promoção ${acao} com sucesso!`);
 
     } catch (error) {
         console.error(`Erro na operação (${metodoHttp}):`, error);
-        alert(`Erro ao salvar promoção: ${error.message}`);
+        showToast(`Erro ao salvar promoção: ${error.message}`);
     }
 }
 
@@ -769,7 +814,7 @@ async function carregarPromocoesNaTabela() {
     tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Carregando promoções...</td></tr>`;
 
     const token = getToken();
-    
+
     // Checagem redundante de token (embora já feita no DOMContentLoaded)
     if (!token) {
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Erro: Administrador não autenticado.</td></tr>`;
@@ -786,7 +831,7 @@ async function carregarPromocoesNaTabela() {
 
         if (response.status === 401) {
             // Se o token expirou ou é inválido
-            alert('Sessão expirada. Faça login novamente.');
+            showToast('Sessão expirada. Faça login novamente.', 'error');
             window.location.href = 'loginadm.html';
             return;
         }
@@ -796,7 +841,7 @@ async function carregarPromocoesNaTabela() {
         }
 
         // 1. Atualiza a variável global do painel com os dados do banco
-        promocoesPainel = await response.json(); 
+        promocoesPainel = await response.json();
 
         // 2. Atualiza o Dashboard e Cliques (AGORA OS DADOS ESTÃO PRONTOS!)
         inicializarDashboard();
@@ -819,7 +864,7 @@ async function carregarPromocoesNaTabela() {
             // Usa '_id' do MongoDB para ações
             const idPromocao = promocao._id;
             // A lógica de cliques ainda depende do objeto 'cliques' local.
-            const cliquesProduto = cliques[idPromocao] ? cliques[idPromocao].total : 0; 
+            const cliquesProduto = cliques[idPromocao] ? cliques[idPromocao].total : 0;
 
             html += `
             <tr>
@@ -867,12 +912,12 @@ function carregarCliquesNaTabela() {
             ? new Date(infoCliques.ultimoClique).toLocaleString('pt-BR')
             : 'Nunca';
 
-        html += 
+        html +=
             `<tr>
                 <td>${promocao.titulo}</td>` // 🚨 CORREÇÃO 2: Usar promocao.titulo para o nome
-        +
-        // ... restante do HTML
-        `
+            +
+            // ... restante do HTML
+            `
                 <td class="text-truncate" style="max-width: 200px;">${promocao.link}</td>
                 <td>${infoCliques.total}</td>
                 <td>${ultimoClique}</td>
@@ -885,9 +930,9 @@ function carregarCliquesNaTabela() {
 
 async function editarPromocao(id) {
     const promocao = promocoesPainel.find(p => p._id === id); // Busca na lista já carregada da API
-    
+
     if (!promocao) {
-        alert('Promoção não encontrada na lista atual.');
+        showToast('Promoção não encontrada na lista atual.');
         return;
     }
 
@@ -900,7 +945,7 @@ async function editarPromocao(id) {
     document.getElementById('produto-loja').value = promocao.loja;
     document.getElementById('produto-imagem').value = promocao.imagem || '';
     document.getElementById('produto-link').value = promocao.link;
-    
+
     // *** MUITO IMPORTANTE PARA EDIÇÃO ***
     // Adicionar um campo oculto para guardar o ID da promoção que está sendo editada
     let idHidden = document.getElementById('produto-id-hidden');
@@ -911,11 +956,11 @@ async function editarPromocao(id) {
         document.getElementById('form-cadastro-promocao').appendChild(idHidden);
     }
     idHidden.value = id;
-    
+
     // Navegar para a aba de cadastro
     document.querySelector('[data-section="cadastrar-promocao"]').click();
 
-    alert('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".');
+    showToast('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".');
 }
 
 function copiarLink(id) {
@@ -924,11 +969,11 @@ function copiarLink(id) {
 
     navigator.clipboard.writeText(promocao.link)
         .then(() => {
-            alert('Link copiado para a área de transferência!');
+            showToast('Link copiado para a área de transferência!');
         })
         .catch(err => {
             console.error('Erro ao copiar link: ', err);
-            alert('Erro ao copiar link. Tente novamente.');
+            showToast('Erro ao copiar link. Tente novamente.');
         });
 }
 
@@ -937,7 +982,7 @@ async function excluirPromocao(id) {
 
     const token = getToken();
     if (!token) {
-        alert('Sessão expirada. Faça login novamente.');
+        showToast('Sessão expirada. Faça login novamente.', 'error');
         window.location.href = 'loginadm.html';
         return;
     }
@@ -951,7 +996,7 @@ async function excluirPromocao(id) {
         });
 
         if (response.status === 401) {
-            alert('Não autorizado. Redirecionando para login.');
+            showToast('Não autorizado. Redirecionando para login.', 'error');
             window.location.href = 'loginadm.html';
             return;
         }
@@ -965,11 +1010,11 @@ async function excluirPromocao(id) {
         await carregarPromocoesNaTabela();
         atualizarEstatisticas(); // Re-executa estatísticas
 
-        alert('Promoção excluída com sucesso!');
+        showToast('Promoção excluída com sucesso!');
 
     } catch (error) {
         console.error('Erro ao excluir:', error);
-        alert(`Falha ao excluir promoção: ${error.message}`);
+        showToast(`Falha ao excluir promoção: ${error.message}`);
     }
 }
 
@@ -993,14 +1038,14 @@ async function salvarConfiguracoesAdmin(event) {
 
     // 1. Validação de Nova Senha no Front-end
     if (senhaNova && senhaNova.length < 6) {
-        mostrarAlerta('A nova senha deve ter pelo menos 6 caracteres.', 'danger');
+        showToast('A nova senha deve ter pelo menos 6 caracteres.', 'danger');
         return;
     }
     if (senhaNova && senhaNova !== senhaConfirmar) {
         mostrarAlerta('A nova senha e a confirmação não coincidem.', 'danger');
         return;
     }
-    
+
     // 2. Requerimento de Senha Atual
     // Se o admin tentar mudar o e-mail/nome OU a senha, a senha atual é OBRIGATÓRIA para segurança.
     if (!senhaAtual) {
@@ -1017,7 +1062,7 @@ async function salvarConfiguracoesAdmin(event) {
 
     const token = getToken();
     if (!token) {
-        alert('Sessão expirada. Faça login novamente.');
+        showToast('Sessão expirada. Faça login novamente.', 'error');
         window.location.href = 'loginadm.html';
         return;
     }
@@ -1027,7 +1072,7 @@ async function salvarConfiguracoesAdmin(event) {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(dadosAtualizados)
         });
@@ -1035,18 +1080,18 @@ async function salvarConfiguracoesAdmin(event) {
         const data = await response.json();
 
         if (response.status === 401) {
-            mostrarAlerta(data.error || 'Senha atual incorreta. Verifique e tente novamente.', 'danger');
+            showToast(data.error || 'Senha atual incorreta. Verifique e tente novamente.', 'danger');
             return;
         }
 
         if (!response.ok) {
-            mostrarAlerta(data.error || 'Erro ao salvar alterações. Tente novamente.', 'danger');
+            showToast(data.error || 'Erro ao salvar alterações. Tente novamente.', 'danger');
             return;
         }
 
         // Sucesso
-        mostrarAlerta('Configurações salvas com sucesso!', 'success');
-        
+        showToast('Configurações salvas com sucesso!', 'success');
+
         // Limpar campos de senha
         document.getElementById('admin-senha-atual').value = '';
         document.getElementById('admin-senha-nova').value = '';
@@ -1054,7 +1099,7 @@ async function salvarConfiguracoesAdmin(event) {
 
     } catch (error) {
         console.error("Erro ao salvar configurações:", error);
-        mostrarAlerta("Erro de conexão com o servidor.", 'danger');
+        showToast("Erro de conexão com o servidor.", 'danger');
     }
 }
 
@@ -1070,7 +1115,7 @@ function aplicarTema() {
     document.documentElement.style.setProperty('--primary-blue', corPrincipal);
     document.documentElement.style.setProperty('--secondary-blue', corSecundaria);
 
-    alert('Tema aplicado com sucesso!');
+    showToast('Tema aplicado com sucesso!');
 }
 
 function resetarTema() {
@@ -1080,7 +1125,7 @@ function resetarTema() {
     document.documentElement.style.setProperty('--primary-blue', '#0d6efd');
     document.documentElement.style.setProperty('--secondary-blue', '#0a58ca');
 
-    alert('Tema resetado para as cores padrão!');
+    showToast('Tema resetado para as cores padrão!');
 }
 
 // Exportar funções globais para o HTML (Necessário para onclick)
@@ -1114,35 +1159,35 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             body: JSON.stringify({ username, password })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.token) {
-                // Login bem-sucedido: Salva o token JWT e redireciona
-                localStorage.setItem('authToken', data.token);
-                loginError.classList.add('d-none');
-                
-                // Redirecionamento para o painel administrativo
-                window.location.href = 'painel.html'; 
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    // Login bem-sucedido: Salva o token JWT e redireciona
+                    localStorage.setItem('authToken', data.token);
+                    loginError.classList.add('d-none');
 
-            } else {
-                // Login falhou: Exibe a mensagem de erro da API ou uma genérica
-                errorMessage.textContent = data.error || 'Usuário ou senha incorretos. Tente novamente.';
+                    // Redirecionamento para o painel administrativo
+                    window.location.href = 'painel.html';
+
+                } else {
+                    // Login falhou: Exibe a mensagem de erro da API ou uma genérica
+                    errorMessage.textContent = data.error || 'Usuário ou senha incorretos. Tente novamente.';
+                    loginError.classList.remove('d-none');
+
+                    // Rolagem suave para o alerta
+                    loginError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // Limpar campos de senha
+                    document.getElementById('password').value = '';
+                    document.getElementById('password').focus();
+                }
+            })
+            .catch(error => {
+                // Erro de rede ou servidor
+                console.error("Erro de conexão:", error);
+                errorMessage.textContent = 'Não foi possível conectar ao servidor. Verifique o backend.';
                 loginError.classList.remove('d-none');
-
-                // Rolagem suave para o alerta
-                loginError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Limpar campos de senha
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
-            }
-        })
-        .catch(error => {
-            // Erro de rede ou servidor
-            console.error("Erro de conexão:", error);
-            errorMessage.textContent = 'Não foi possível conectar ao servidor. Verifique o backend.';
-            loginError.classList.remove('d-none');
-        });
+            });
         // --- FIM DA MUDANÇA ---
     });
 
@@ -1177,18 +1222,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Verificar se todos os campos estão preenchidos
         if (!nome || !email || !assunto || !mensagem) {
-            showError('Por favor, preencha todos os campos obrigatórios.');
+            showToast('Por favor, preencha todos os campos obrigatórios.', 'error'); // Corrigido
             return;
         }
 
         // Validar e-mail
         if (!isValidEmail(email)) {
-            showError('Por favor, insira um e-mail válido.');
+            showToast('Por favor, insira um e-mail válido.', 'error'); // Corrigido
             return;
         }
 
         // Se chegou aqui, o formulário é válido
-        hideAlert(formError);
+        // hideAlert(formError);
         simulateSubmission();
     });
 
@@ -1196,21 +1241,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
-    }
-
-    // Função para mostrar erro
-    function showError(message) {
-        const errorMessage = document.getElementById('error-message');
-        errorMessage.textContent = message;
-        formError.classList.remove('d-none');
-
-        // Rolagem suave para o alerta
-        formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Função para ocultar alerta
-    function hideAlert(alertElement) {
-        alertElement.classList.add('d-none');
     }
 
     // Função para simular envio do formulário
@@ -1230,16 +1260,14 @@ document.addEventListener('DOMContentLoaded', function () {
             // Mostrar mensagem de sucesso
             formSuccess.classList.remove('d-none');
 
+            // NOVO:
+            showToast('Mensagem enviada com sucesso! Em breve retornaremos o contato.', 'success');
+
             // Limpar formulário
             contactForm.reset();
 
             // Rolagem suave para a mensagem de sucesso
-            formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Ocultar mensagem de sucesso após alguns segundos
-            setTimeout(() => {
-                formSuccess.classList.add('d-none');
-            }, 5000);
+            // formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
         }, 1500);
     }
@@ -1331,7 +1359,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Se chegou aqui, o formulário é válido
-        clearError();
+        // clearError();
         simulatePasswordReset();
     });
 
@@ -1381,21 +1409,6 @@ document.addEventListener('DOMContentLoaded', function () {
         novaSenhaInput.parentNode.appendChild(strengthIndicator);
     }
 
-    // Função para mostrar erro
-    function showError(message) {
-        const errorMessage = document.getElementById('error-message');
-        errorMessage.textContent = message;
-        resetError.classList.remove('d-none');
-
-        // Rolagem suave para o alerta
-        resetError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Função para limpar erro
-    function clearError() {
-        resetError.classList.add('d-none');
-    }
-
     // Função para simular redefinição de senha
     function simulatePasswordReset() {
         // Mostrar spinner e desabilitar botão
@@ -1410,11 +1423,11 @@ document.addEventListener('DOMContentLoaded', function () {
             buttonSpinner.classList.add('d-none');
             submitButton.disabled = false;
 
-            // Mostrar mensagem de sucesso
-            resetSuccess.classList.remove('d-none');
-
             // Limpar formulário
             resetForm.reset();
+
+            // NOVO:
+            showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
 
             // Remover indicador de força da senha
             const strengthIndicator = document.getElementById('password-strength-indicator');
@@ -1447,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Adicionar ao bloco do painel no script-principal.js
 async function carregarDadosAdmin() {
     const token = getToken();
-    if (!token) return; 
+    if (!token) return;
 
     try {
         const response = await fetch('/api/admin/me', {
@@ -1464,7 +1477,7 @@ async function carregarDadosAdmin() {
         }
 
         const data = await response.json();
-        
+
         // Preenche o formulário e o campo oculto
         document.getElementById('admin-id-hidden').value = data._id; // ID do MongoDB
         document.getElementById('admin-nome').value = data.nome || data.username;
@@ -1495,7 +1508,7 @@ async function cadastrarNovoAdmin(event) {
         alertPlaceholder.innerHTML = `<div class="alert alert-${tipo}" role="alert">${msg}</div>`;
         alertPlaceholder.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
-    alertPlaceholder.innerHTML = ''; 
+    alertPlaceholder.innerHTML = '';
 
     // Validação básica
     if (!nome || !email || !password) {
@@ -1508,7 +1521,7 @@ async function cadastrarNovoAdmin(event) {
     }
 
     const dadosRegistro = { nome, email, password };
-    
+
     // NOTA: O Token JWT NÃO é necessário para o REGISTRO, mas sim para o LOGIN e PUT/DELETE. 
     // Como você já está logado para ACESSAR o painel, a rota /register pode ser pública 
     // ou, idealmente, ter um middleware que apenas administradores possam ACIONAR.
@@ -1533,7 +1546,7 @@ async function cadastrarNovoAdmin(event) {
 
         // Sucesso
         mostrarAlerta(`Administrador "${nome}" registrado com sucesso!`, 'success');
-        
+
         // Limpar formulário
         document.getElementById('form-cadastro-admin-novo').reset();
 
