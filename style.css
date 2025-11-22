@@ -345,42 +345,14 @@ footer {
     height: 100%;
     display: flex; 
     flex-direction: column;
-    
-    /* 🚨 NOVO AJUSTE CRÍTICO: Zera o padding vertical do corpo do card */
-    padding-top: 0.5rem !important;    /* Adiciona um pequeno padding superior, se necessário */
-    padding-bottom: 0.5rem !important; /* Adiciona um pequeno padding inferior, se necessário */
-    padding-left: 1rem;
-    padding-right: 1rem;
 }
 
 .card-promo .card-title {
-    /* Manter as regras de limitação de 2 linhas aqui (que você acabou de aplicar) */
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
+    /* 🚨 AJUSTE AQUI: Zera a margem inferior para grudar no elemento de preço */
+    margin-bottom: 0 !important; 
     
-    /* 🚨 AJUSTE CRÍTICO: Zera todas as margens verticais do H5 */
-    margin-top: 0 !important;
-    margin-bottom: 0 !important; /* Deve eliminar o espaço abaixo do título */
-    padding-bottom: 0 !important; 
-
-    /* Mantenha suas outras regras de fonte */
+    /* Mantenha o font-size e a cor: */
     font-size: 1.25rem; 
     color: #333; 
     font-weight: 500;
 }
-
-/* Ajuste para o bloco que contém o preço */
-.card-promo .mt-auto {
-    /* Garante que o bloco de preço comece imediatamente */
-    margin-top: auto !important; 
-    padding-top: 0 !important;
-}
-
-/* Ajuste o primeiro elemento dentro do mt-auto, que contém o preço (d-flex align-items-center mb-2) */
-.card-promo .mt-auto > div.d-flex {
-    margin-bottom: 0 !important; /* Zera a margem inferior deste bloco de preço */
-    margin-top: 0 !important; /* Zera qualquer margem superior que possa existir */
-}
-
