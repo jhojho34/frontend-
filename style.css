@@ -348,36 +348,32 @@ footer {
 }
 
 .card-promo .card-title {
-    /* **REGRAS PARA LIMITAR A 2 LINHAS COM RETICÊNCIAS (...)** */
-    
-    /* 1. Esconde o conteúdo que ultrapassa o espaço */
-    overflow: hidden; 
-    
-    /* 2. Permite a quebra de linha de forma controlada */
+    /* Manter as regras de limitação de 2 linhas aqui (que você acabou de aplicar) */
+    overflow: hidden;
     display: -webkit-box;
-    
-    /* 3. Limita o texto a no máximo 2 linhas */
     -webkit-line-clamp: 2; 
-    
-    /* 4. Orientação vertical para o corte */
     -webkit-box-orient: vertical;
     
-    /* 5. Garante que não haja espaço extra abaixo do título, mantendo o valor mais próximo */
-    margin-bottom: 0 !important; 
-    
-    /* Mantenha suas outras regras de estilo de fonte */
+    /* 🚨 AJUSTE CRÍTICO: Zera todas as margens verticais do H5 */
+    margin-top: 0 !important;
+    margin-bottom: 0 !important; /* Deve eliminar o espaço abaixo do título */
+    padding-bottom: 0 !important; 
+
+    /* Mantenha suas outras regras de fonte */
     font-size: 1.25rem; 
     color: #333; 
     font-weight: 500;
 }
 
-/* Ajusta o contêiner interno dos preços/loja */
+/* Ajuste para o bloco que contém o preço */
 .card-promo .mt-auto {
-    /* Reduz a margem que o bloco de preço/botão cria com o conteúdo acima */
-    padding-top: 5px; /* Adiciona um pequeno padding interno se necessário */
+    /* Garante que o bloco de preço comece imediatamente */
+    margin-top: auto !important; 
+    padding-top: 0 !important;
 }
 
-/* Se você notar espaço entre o preço e o botão, ajuste a margem do .mb-2 */
-.card-promo .mt-auto .mb-2 {
-    margin-bottom: 0.25rem !important; /* Reduz de 0.5rem (mb-2) para 0.25rem */
+/* Ajuste o primeiro elemento dentro do mt-auto, que contém o preço (d-flex align-items-center mb-2) */
+.card-promo .mt-auto > div.d-flex {
+    margin-bottom: 0 !important; /* Zera a margem inferior deste bloco de preço */
+    margin-top: 0 !important; /* Zera qualquer margem superior que possa existir */
 }
