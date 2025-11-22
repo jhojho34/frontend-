@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="ícone-página2.png" type="image/png">
+    <title>PromoShop - As Melhores Ofertas</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#inicio">
+                <i class="bi bi-tag-fill me-2"></i>PromoShop
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#inicio">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#categorias">Categorias</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#promocoes">Promoções</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contato.html">Contato</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <a href="loginadm.html" class="btn btn-outline-light">
+                        <i class="bi bi-person"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section" id="inicio">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold">As Melhores Ofertas do Dia</h1>
+                    <p class="lead">Encontre promoções incríveis com descontos de até 80% nas principais lojas online.
+                    </p>
+                    <div class="mt-4">
+                        <a href="#promocoes" class="btn btn-light btn-lg me-2">Ver Promoções</a>
+                        <a href="#categorias" class="btn btn-outline-light btn-lg">Explorar Categorias</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="floating-phone-container">
+                        <div class="floating-phone">
+                            <div class="phone-screen-content">
+                                <img src="Imagem celular1.png" alt="Conteúdo da Tela do App">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="search-box">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control form-control-lg"
+                            placeholder="Buscar no PromoShop">
+                        <button class="btn btn-primary" type="button">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container filter-section">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label for="categoria" class="form-label">Categoria</label>
+                <select class="form-select" id="categoria">
+                    <option selected>Todas as categorias</option>
+                    <option value="tecnologia">Tecnologia</option>
+                    <option value="eletronicos">Eletrônicos</option>
+                    <option value="casa">Casa e Decoração</option>
+                    <option value="moda">Moda</option>
+                    <option value="beleza">Beleza e Saúde</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="loja" class="form-label">Loja</label>
+                <select class="form-select" id="loja">
+                    <option selected>Todas as lojas</option>
+                    <option value="amazon">Amazon</option>
+                    <option value="shopee">Shopee</option>
+                    <option value="magalu">Magazine Luiza</option>
+                    <option value="mercado">Mercado Livre</option>
+                    <option value="aliexpress">AliExpress</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="preco-min" class="form-label">Preço Mínimo</label>
+                <input type="number" class="form-control" id="preco-min" placeholder="R$ 0">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="preco-max" class="form-label">Preço Máximo</label>
+                <input type="number" class="form-control" id="preco-max" placeholder="R$ 1000">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 text-center">
+                <button class="btn btn-primary" id="aplicar-filtros">
+                    <i class="bi bi-funnel"></i> Aplicar Filtros
+                </button>
+                <button class="btn btn-outline-secondary ms-2" id="limpar-filtros">
+                    <i class="bi bi-arrow-clockwise"></i> Limpar
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="categorias" class="container mb-5">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold">Categorias em Destaque</h2>
+                <p class="text-muted">Navegue pelas categorias mais procuradas</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="bi bi-laptop"></i>
+                    </div>
+                    <h5>Tecnologia</h5>
+                    <p class="text-muted small">Smartphones, Tablets, Notebooks</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="bi bi-tv"></i>
+                    </div>
+                    <h5>Eletrônicos</h5>
+                    <p class="text-muted small">TVs, Áudio, Games</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="bi bi-house-door"></i>
+                    </div>
+                    <h5>Casa e Decoração</h5>
+                    <p class="text-muted small">Móveis, Utensílios, Decoração</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="category-card">
+                    <div class="category-icon">
+                        <i class="bi bi-bag"></i>
+                    </div>
+                    <h5>Moda</h5>
+                    <p class="text-muted small">Roupas, Calçados, Acessórios</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="promocoes" class="container mb-5">
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold">Promoções em Destaque</h2>
+                <p class="text-muted">Confira as melhores ofertas selecionadas para você</p>
+            </div>
+        </div>
+        <div class="row g-4" id="promocoes-container">
+        </div>
+    </section>
+
+    <section class="social-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 text-center">
+                    <h2 class="fw-bold mb-4">Participe dos Nossos Grupos</h2>
+                    <p class="mb-4">Receba as melhores promoções diretamente no seu WhatsApp ou Telegram</p>
+                    <div class="row justify-content-center">
+                        <div class="col-md-5">
+                            <a href="#" class="social-btn whatsapp-btn">
+                                <i class="bi bi-whatsapp me-2"></i> Grupo WhatsApp
+                            </a>
+                        </div>
+                        <div class="col-md-5">
+                            <a href="#" class="social-btn telegram-btn">
+                                <i class="bi bi-telegram me-2"></i> Canal Telegram
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="fw-bold">
+                        <i class="bi bi-tag-fill me-2"></i>PromoShop
+                    </h5>
+                    <p>Encontre as melhores promoções e ofertas das principais lojas online. Economize com nossos cupons
+                        e descontos exclusivos.</p>
+                </div>
+                <div class="col-lg-2 col-md-6 mb-4">
+                    <h5 class="fw-bold">Links Rápidos</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="#">Início</a></li>
+                        <li class="mb-2"><a href="#categorias">Categorias</a></li>
+                        <li class="mb-2"><a href="#promocoes">Promoções</a></li>
+                        <li class="mb-2"><a href="#">Sobre Nós</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h5 class="fw-bold">Lojas Parceiras</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="#">Amazon</a></li>
+                        <li class="mb-2"><a href="#">Shopee</a></li>
+                        <li class="mb-2"><a href="#">Magazine Luiza</a></li>
+                        <li class="mb-2"><a href="#">Mercado Livre</a></li>
+                        <li class="mb-2"><a href="#">AliExpress</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mb-4">
+                    <h5 class="fw-bold">Contato</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2">
+                            <i class="bi bi-envelope me-2"></i> contatopromoshop@gmail.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-whatsapp me-2"></i> (61) 99512-4522
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="text-white me-3"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="#" class="text-white me-3"><i class="bi bi-instagram fs-5"></i></a>
+                        <a href="#" class="text-white"><i class="bi bi-twitter fs-5"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2025 PromoShop. Todos os direitos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="script-principal.js"></script>
+    
+</body>
+</html>

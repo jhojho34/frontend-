@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="ícone-página2.png" type="image/png">
+    <title>Painel do Administrador - PromoShop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style-painel.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-tag-fill me-2"></i> PromoShop</h3>
+        </div>
+        <div class="sidebar-menu">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-section="dashboard">
+                        <i class="bi bi-speedometer2"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="cadastrar-promocao">
+                        <i class="bi bi-plus-circle"></i> <span>Cadastrar Promoção</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="gerenciar-promocoes">
+                        <i class="bi bi-pencil-square"></i> <span>Gerenciar Promoções</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="cliques-links">
+                        <i class="bi bi-bar-chart"></i> <span>Cliques nos Links</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="configuracoes">
+                        <i class="bi bi-gear"></i> <span>Configurações</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="cadastrar-admin">
+                        <i class="bi bi-person-plus"></i> <span>Novo Admin</span>
+                    </a>
+                </li>
+                <li class="nav-item mt-4">
+                    <a class="nav-link" href="#" onclick="fazerLogout(event)">
+                        <i class="bi bi-box-arrow-left"></i> <span>Sair</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="user-menu">
+                <img src="https://via.placeholder.com/40" alt="Admin Avatar">
+                <span>Administrador</span>
+            </div>
+        </div>
+
+        <div id="dashboard" class="content-section active">
+            <h2 class="section-title">Visão Geral</h2>
+
+            <div class="row">
+                <div class="col-md-3 col-sm-6">
+                    <div class="stats-card">
+                        <div class="card-icon blue">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                        <h3 id="total-produtos">0</h3>
+                        <p>Produtos Cadastrados</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stats-card">
+                        <div class="card-icon green">
+                            <i class="bi bi-mouse"></i>
+                        </div>
+                        <h3 id="total-cliques">0</h3>
+                        <p>Total de Cliques</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stats-card">
+                        <div class="card-icon orange">
+                            <i class="bi bi-lightning"></i>
+                        </div>
+                        <h3 id="promocoes-ativas">0</h3>
+                        <p>Promoções Ativas</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stats-card">
+                        <div class="card-icon purple">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <h3 id="produto-mais-clicado">-</h3>
+                        <p>Produto Mais Clicado</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-8">
+                    <div class="content-section">
+                        <h3 class="section-title">Cliques por Dia (Últimos 7 dias)</h3>
+                        <div class="chart-container">
+                            <canvas id="clicksChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="content-section">
+                        <h3 class="section-title">Top Produtos</h3>
+                        <div id="top-products-list">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cadastrar-promocao" class="content-section">
+            <h2 class="section-title">Cadastrar Nova Promoção</h2>
+
+            <form id="form-cadastro-promocao">
+                <input type="hidden" id="produto-id-hidden" value="">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="produto-nome" class="form-label">Nome do Produto</label>
+                        <input type="text" class="form-control" id="produto-nome" name="nome" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="produto-categoria" class="form-label">Categoria</label>
+                        <select class="form-select" id="produto-categoria" name="categoria" required>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="tecnologia">Tecnologia</option>
+                            <option value="eletronicos">Eletrônicos</option>
+                            <option value="casa">Casa e Decoração</option>
+                            <option value="moda">Moda</option>
+                            <option value="beleza">Beleza e Saúde</option>
+                            <option value="livros">Livros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="produto-descricao" class="form-label">Descrição</label>
+                    <textarea class="form-control" id="produto-descricao" name="descricao" rows="3"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="produto-preco-antigo" class="form-label">Preço Antigo (R$)</label>
+                        <input type="number" class="form-control" id="produto-preco-antigo" name="preco_antigo"
+                            step="0.01" min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="produto-preco-atual" class="form-label">Preço Atual (R$)</label>
+                        <input type="number" class="form-control" id="produto-preco-atual" name="preco_atual"
+                            step="0.01" min="0" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="produto-loja" class="form-label">Loja</label>
+                        <select class="form-select" id="produto-loja" name="loja" required>
+                            <option value="">Selecione uma loja</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Shopee">Shopee</option>
+                            <option value="Magazine Luiza">Magazine Luiza</option>
+                            <option value="Mercado Livre">Mercado Livre</option>
+                            <option value="AliExpress">AliExpress</option>
+                            <option value="Americanas">Americanas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="produto-imagem" class="form-label">URL da Imagem</label>
+                        <input type="url" class="form-control" id="produto-imagem" name="url_imagem">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="produto-link" class="form-label">Link de Afiliado</label>
+                        <input type="url" class="form-control" id="produto-link" name="link_afiliado" required>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-secondary me-md-2" id="btn-limpar-form">Limpar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Promoção</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="gerenciar-promocoes" class="content-section">
+            <h2 class="section-title">Gerenciar Promoções</h2>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Categoria</th>
+                            <th>Preço Atual</th>
+                            <th>Loja</th>
+                            <th>Cliques</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-promocoes">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="cliques-links" class="content-section">
+            <h2 class="section-title">Cliques nos Links de Afiliado</h2>
+
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Link</th>
+                            <th>Total de Cliques</th>
+                            <th>Último Clique</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-cliques">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-container mt-4">
+                <canvas id="clicksEvolutionChart"></canvas>
+            </div>
+        </div>
+
+        <div id="configuracoes" class="content-section">
+            <h2 class="section-title">Configurações</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h4 class="mb-3">Dados do Administrador</h4>
+                        <form id="form-config-admin">
+                            <div id="config-alert-placeholder" class="mb-3"></div>
+
+                            <input type="hidden" id="admin-id-hidden" value="">
+
+                            <div class="mb-3">
+                                <label for="admin-nome" class="form-label">Nome</label>
+                                <input type="text" class="form-control" id="admin-nome" value="Administrador">
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin-email" class="form-label">E-mail</label>
+                                <input type="email" class="form-control" id="admin-email" value="admin@promoshop.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin-senha-atual" class="form-label">Senha Atual</label>
+                                <input type="password" class="form-control" id="admin-senha-atual">
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin-senha-nova" class="form-label">Nova Senha</label>
+                                <input type="password" class="form-control" id="admin-senha-nova">
+                            </div>
+                            <div class="mb-3">
+                                <label for="admin-senha-confirmar" class="form-label">Confirmar Nova Senha</label>
+                                <input type="password" class="form-control" id="admin-senha-confirmar">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div>
+                        <h4 class="mb-3">Personalização do Tema</h4>
+                        <div class="mb-3">
+                            <label for="tema-cor-principal" class="form-label">Cor Principal</label>
+                            <input type="color" class="form-control" id="tema-cor-principal" value="#0d6efd">
+                        </div>
+                        <div class="mb-3">
+                            <label for="tema-cor-secundaria" class="form-label">Cor Secundária</label>
+                            <input type="color" class="form-control" id="tema-cor-secundaria" value="#0a58ca">
+                        </div>
+                        <button type="button" class="btn btn-primary" id="btn-aplicar-tema">Aplicar Tema</button>
+                        <button type="button" class="btn btn-secondary" id="btn-resetar-tema">Resetar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cadastrar-admin" class="content-section">
+            <h2 class="section-title">Cadastrar Novo Administrador</h2>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h4 class="mb-3">Detalhes do Novo Administrador</h4>
+                        <div id="register-alert-placeholder" class="mb-3"></div>
+
+                        <form id="form-cadastro-admin-novo">
+                            <div class="mb-3">
+                                <label for="novo-admin-nome" class="form-label">Nome Completo</label>
+                                <input type="text" class="form-control" id="novo-admin-nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="novo-admin-email" class="form-label">E-mail (Login)</label>
+                                <input type="email" class="form-control" id="novo-admin-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="novo-admin-senha" class="form-label">Senha</label>
+                                <input type="password" class="form-control" id="novo-admin-senha" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus me-2"></i> Registrar Novo Admin
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="script-principal.js"></script>
+</body>
+
+</html>

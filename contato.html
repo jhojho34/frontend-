@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contato - PromoShop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="contato.css">
+</head>
+<body>
+    <div class="contact-container">
+        <a href="index.html" class="back-to-home">
+            <i class="bi bi-arrow-left me-2"></i>Voltar para o site principal
+        </a>
+        
+        <div class="contact-card">
+            <div class="contact-header">
+                <i class="bi bi-chat-dots icon-large"></i>
+                <h1 class="h2 mb-2">Fale Conosco</h1>
+                <p class="mb-0">Entre em contato conosco para dúvidas, parcerias ou sugestões.</p>
+            </div>
+            <div class="contact-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="alert alert-danger d-none" id="form-error" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <span id="error-message">Por favor, preencha todos os campos obrigatórios.</span>
+                        </div>
+                        
+                        <div class="alert alert-success d-none" id="form-success" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            <span>Mensagem enviada com sucesso! Retornaremos em breve.</span>
+                        </div>
+                        
+                        <form id="contact-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="nome" class="form-label">Nome Completo <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nome" placeholder="Seu nome completo" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">E-mail <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" placeholder="seu@email.com" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="assunto" class="form-label">Assunto <span class="text-danger">*</span></label>
+                                <select class="form-select" id="assunto" required>
+                                    <option value="">Selecione o assunto</option>
+                                    <option value="duvida">Dúvida sobre promoções</option>
+                                    <option value="parceria">Proposta de parceria</option>
+                                    <option value="sugestao">Sugestão ou feedback</option>
+                                    <option value="problema">Problema técnico</option>
+                                    <option value="outro">Outro</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="mensagem" class="form-label">Mensagem <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="mensagem" rows="1" placeholder="Digite sua mensagem aqui..." required></textarea>
+                            </div>
+                            
+                            <div class="d-grid d-md-flex justify-content-md-end">
+                                <button type="submit" class="btn btn-primary" id="submit-button">
+                                    <span id="button-text">Enviar mensagem</span>
+                                    <span id="button-spinner" class="spinner-border spinner-border-sm d-none ms-2" role="status"></span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="col-lg-4 mt-4 mt-lg-0">
+                        <div class="info-card">
+                            <h3 class="section-title">Informações de Contato</h3>
+                            
+                            <div class="contact-info">
+                                <div class="contact-icon">
+                                    <i class="bi bi-envelope"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h5>E-mail</h5>
+                                    <p>contatopromoshop@gmail.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="contact-info">
+                                <div class="contact-icon">
+                                    <i class="bi bi-whatsapp"></i>
+                                </div>
+                                <div class="contact-details">
+                                    <h5>WhatsApp</h5>
+                                    <p>(61) 99512-4522<br>Atendimento: 9h às 18h</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="script-principal.js"></script>
+</body>
+</html>
