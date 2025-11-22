@@ -348,22 +348,22 @@ footer {
 }
 
 .card-promo .card-title {
-    margin-bottom: 0.5rem;
-    font-size: 1.25rem; 
-    color: #333; /* Ou a cor desejada */
-    font-weight: 500;
+    /* 🚨 AJUSTE AQUI: Zera a margem inferior para grudar no elemento de preço */
+    margin-bottom: 0 !important; 
     
-    /* Removendo regras que causam o '...' */
-    /* Nenhuma propriedade de 'overflow' ou 'line-clamp' deve estar aqui */
+    /* Mantenha o font-size e a cor: */
+    font-size: 1.25rem; 
+    color: #333; 
+    font-weight: 500;
 }
 
-.card-description {
-    font-size: 0.85rem;
-    color: var(--dark-gray);
-    margin-bottom: 0.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+/* Ajusta o contêiner interno dos preços/loja */
+.card-promo .mt-auto {
+    /* Reduz a margem que o bloco de preço/botão cria com o conteúdo acima */
+    padding-top: 5px; /* Adiciona um pequeno padding interno se necessário */
+}
+
+/* Se você notar espaço entre o preço e o botão, ajuste a margem do .mb-2 */
+.card-promo .mt-auto .mb-2 {
+    margin-bottom: 0.25rem !important; /* Reduz de 0.5rem (mb-2) para 0.25rem */
 }
