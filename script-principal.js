@@ -1414,13 +1414,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-    // Elementos dos campos de senha
-    const novaSenhaInput = document.getElementById('nova-senha');
-    const confirmarSenhaInput = document.getElementById('confirmar-senha');
-
-    // Botões para mostrar/ocultar senha
-    const toggleButtons = document.querySelectorAll('.toggle-password');
-
     // Adicionar evento de clique nos botões de mostrar/ocultar senha
     toggleButtons.forEach(button => {
         button.addEventListener('click', function () {
