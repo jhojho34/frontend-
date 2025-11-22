@@ -194,15 +194,16 @@ function limparFiltros() {
 }
 
 // Event Listeners (script.js)
+// Event Listeners (script.js)
 document.addEventListener('DOMContentLoaded', function () {
 
-    // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (onde existe o contêiner de promoções)
+    // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (index.html)
     const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (promocoesContainer) {
-
+    if (promocoesContainer) { 
+        
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
-        carregarPromocoes();
+        carregarPromocoes(); 
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -220,7 +221,8 @@ document.addEventListener('DOMContentLoaded', function () {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
+                // 🚨 VERIFICAÇÃO ADICIONAL PARA O TARGET: ESSENCIAL
+                if (target) { 
                     target.scrollIntoView({
                         behavior: 'smooth',
                         block: 'start'
@@ -1067,7 +1069,9 @@ async function excluirPromocao(id) {
 
 // Adicionar ao bloco do painel no script-principal.js
 async function salvarConfiguracoesAdmin(event) {
-    event.preventDefault();
+    if (event) { // 🚨 ADICIONE ESTA VERIFICAÇÃO
+        event.preventDefault(); // Linha 1070 (agora segura)
+    }
 
     const nome = document.getElementById('admin-nome').value;
     const email = document.getElementById('admin-email').value;
