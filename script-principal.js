@@ -63,6 +63,9 @@ async function carregarPromocoes(promocoesParaExibir = null) {
                 </div>
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">${promocao.titulo}</h5>
+                    
+                    <p class="card-text card-description">${promocao.descricao || ''}</p> 
+
                     <div class="mt-auto">
                         <div class="d-flex align-items-center mb-2">
                             <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
