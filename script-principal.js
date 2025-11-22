@@ -94,6 +94,13 @@ function formatarPreco(preco) {
 // Função para carregar as promoções
 async function carregarPromocoes(promocoesParaExibir = null) {
     const container = document.getElementById('promocoes-container');
+
+    if (!container) {
+        // Se o container não existe (e.g., estamos no painel.html), 
+        // a função deve parar para evitar erros.
+        return; 
+    }
+
     container.innerHTML = 'Carregando ofertas...'; // Feedback de carregamento
 
     // Se o array de exibição não foi fornecido (ou está vazio), busca na API
@@ -191,11 +198,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Carregar promoções iniciais
     carregarPromocoes();
 
-    // 🚨 CORREÇÃO: VERIFICAÇÃO DE EXISTÊNCIA (Linha 265)
+    // A CORREÇÃO ESTÁ AQUI (Linha 265)
     const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
     const limparFiltrosBtn = document.getElementById('limpar-filtros');
 
-    // O erro estava aqui, porque esses botões só existem em index.html
     if (aplicarFiltrosBtn) {
         aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes); // Linha 266
     }
