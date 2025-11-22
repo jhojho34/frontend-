@@ -1181,72 +1181,7 @@ window.copiarLink = copiarLink;
 window.excluirPromocao = excluirPromocao;
 
 // Conteúdo do script-admin.js
-document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('login-form');
-    const loginError = document.getElementById('login-error');
-    const errorMessage = document.getElementById('error-message');
 
-    // 🚨 CORREÇÃO: Adiciona verificação de existência para o formulário de login
-    if (loginForm) {
-
-        // 1. Lógica de envio (que estava no segundo addEventListener)
-        loginForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            // Limpa o erro anterior
-            loginError.classList.add('d-none');
-
-            // --- INÍCIO DA MUDANÇA: Usando FETCH para a API ---
-            fetch('/api/admin/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.token) {
-                        // Login bem-sucedido: Salva o token JWT e redireciona
-                        localStorage.setItem('authToken', data.token);
-                        loginError.classList.add('d-none');
-
-                        // Redirecionamento para o painel administrativo
-                        window.location.href = 'painel.html';
-
-                    } else {
-                        // Login falhou: Exibe a mensagem de erro da API
-                        errorMessage.textContent = data.error || 'Usuário ou senha incorretos. Tente novamente.';
-                        loginError.classList.remove('d-none');
-                        loginError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        document.getElementById('password').value = '';
-                        document.getElementById('password').focus();
-                    }
-                })
-                .catch(error => {
-                    // Erro de rede ou servidor
-                    console.error("Erro de conexão:", error);
-                    errorMessage.textContent = 'Não foi possível conectar ao servidor. Verifique o backend.';
-                    loginError.classList.remove('d-none');
-                });
-            // --- FIM DA MUDANÇA ---
-        });
-
-        // 2. Validação em tempo real para remover o alerta
-        const inputs = document.querySelectorAll('#username, #password');
-        inputs.forEach(input => {
-            input.addEventListener('input', function () {
-                if (!loginError.classList.contains('d-none')) {
-                    loginError.classList.add('d-none');
-                }
-            });
-        });
-
-    }
-});
 
 document.addEventListener('DOMContentLoaded', function () {
     const contactForm = document.getElementById('contact-form');
@@ -1413,25 +1348,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
     }
-
-    // Adicionar evento de clique nos botões de mostrar/ocultar senha
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const targetId = this.getAttribute('data-target');
-            const targetInput = document.getElementById(targetId);
-            const icon = this.querySelector('i');
-
-            if (targetInput.type === 'password') {
-                targetInput.type = 'text';
-                icon.classList.remove('bi-eye');
-                icon.classList.add('bi-eye-slash');
-            } else {
-                targetInput.type = 'password';
-                icon.classList.remove('bi-eye-slash');
-                icon.classList.add('bi-eye');
-            }
-        });
-    });
 
     // Validação em tempo real da força da senha
     novaSenhaInput.addEventListener('input', function () {
