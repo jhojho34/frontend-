@@ -348,10 +348,24 @@ footer {
 }
 
 .card-promo .card-title {
-    /* 🚨 AJUSTE AQUI: Zera a margem inferior para grudar no elemento de preço */
+    /* **REGRAS PARA LIMITAR A 2 LINHAS COM RETICÊNCIAS (...)** */
+    
+    /* 1. Esconde o conteúdo que ultrapassa o espaço */
+    overflow: hidden; 
+    
+    /* 2. Permite a quebra de linha de forma controlada */
+    display: -webkit-box;
+    
+    /* 3. Limita o texto a no máximo 2 linhas */
+    -webkit-line-clamp: 2; 
+    
+    /* 4. Orientação vertical para o corte */
+    -webkit-box-orient: vertical;
+    
+    /* 5. Garante que não haja espaço extra abaixo do título, mantendo o valor mais próximo */
     margin-bottom: 0 !important; 
     
-    /* Mantenha o font-size e a cor: */
+    /* Mantenha suas outras regras de estilo de fonte */
     font-size: 1.25rem; 
     color: #333; 
     font-weight: 500;
