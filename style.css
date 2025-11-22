@@ -345,6 +345,12 @@ footer {
     height: 100%;
     display: flex; 
     flex-direction: column;
+    
+    /* 🚨 NOVO AJUSTE CRÍTICO: Zera o padding vertical do corpo do card */
+    padding-top: 0.5rem !important;    /* Adiciona um pequeno padding superior, se necessário */
+    padding-bottom: 0.5rem !important; /* Adiciona um pequeno padding inferior, se necessário */
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 .card-promo .card-title {
@@ -376,4 +382,9 @@ footer {
 .card-promo .mt-auto > div.d-flex {
     margin-bottom: 0 !important; /* Zera a margem inferior deste bloco de preço */
     margin-top: 0 !important; /* Zera qualquer margem superior que possa existir */
+}
+
+/* Anula a margem vertical do bloco que contém os preços */
+.card-promo .card-body .mb-2 {
+    margin-bottom: 0 !important;
 }
