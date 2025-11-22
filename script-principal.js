@@ -978,8 +978,24 @@ function copiarLink(id) {
 }
 
 async function excluirPromocao(id) {
-    if (!confirm('Tem certeza que deseja excluir esta promoção? Esta ação é irreversível.')) return;
+    // 1. Substitui o window.confirm() pelo SweetAlert2 assíncrono
+    const result = await Swal.fire({
+        title: 'Tem Certeza?',
+        text: 'Você não poderá reverter esta exclusão! Esta ação é irreversível.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33', // Vermelho para a exclusão
+        cancelButtonColor: '#3085d6', // Azul para o cancelamento
+        confirmButtonText: 'Sim, Excluir!',
+        cancelButtonText: 'Cancelar'
+    });
 
+    // Se o usuário clicar em "Cancelar" ou fechar o alerta, a função termina.
+    if (!result.isConfirmed) {
+        return;
+    }
+
+    // A partir daqui, a lógica de exclusão prossegue, pois o usuário confirmou.
     const token = getToken();
     if (!token) {
         showToast('Sessão expirada. Faça login novamente.', 'error');
@@ -1010,11 +1026,17 @@ async function excluirPromocao(id) {
         await carregarPromocoesNaTabela();
         atualizarEstatisticas(); // Re-executa estatísticas
 
-        showToast('Promoção excluída com sucesso!');
+        // 2. Alerta de Sucesso Estilizado do SweetAlert2
+        Swal.fire(
+            'Excluído!',
+            'A promoção foi removida com sucesso.',
+            'success' // Ícone de sucesso do SweetAlert2
+        );
 
     } catch (error) {
         console.error('Erro ao excluir:', error);
-        showToast(`Falha ao excluir promoção: ${error.message}`);
+        // 3. Usa o showToast para o erro da API/conexão
+        showToast(`Falha ao excluir promoção: ${error.message}`, 'error');
     }
 }
 
