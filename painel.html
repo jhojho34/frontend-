@@ -281,65 +281,55 @@
                     </div>
                 </div>
 
-                <div>
-                    <h4 class="mb-3">Detalhes do Novo Administrador</h4>
-                    <div id="register-alert-placeholder" class="mb-3"></div>
-
-                    <form id="form-cadastro-admin-novo">
+                <div class="col-md-6">
+                    <div>
+                        <h4 class="mb-3">Personalização do Tema</h4>
                         <div class="mb-3">
-                            <label for="novo-admin-nome" class="form-label">Nome Completo</label>
-                            <input type="text" class="form-control" id="novo-admin-nome" required>
+                            <label for="tema-cor-principal" class="form-label">Cor Principal</label>
+                            <input type="color" class="form-control" id="tema-cor-principal" value="#0d6efd">
                         </div>
                         <div class="mb-3">
-                            <label for="novo-admin-email" class="form-label">E-mail (Login)</label>
-                            <input type="email" class="form-control" id="novo-admin-email" required>
+                            <label for="tema-cor-secundaria" class="form-label">Cor Secundária</label>
+                            <input type="color" class="form-control" id="tema-cor-secundaria" value="#0a58ca">
                         </div>
-                        <div class="mb-3">
-                            <label for="novo-admin-senha" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="novo-admin-senha" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-person-plus me-2"></i> Registrar Novo Admin
-                        </button>
-                    </form>
+                        <button type="button" class="btn btn-primary" id="btn-aplicar-tema">Aplicar Tema</button>
+                        <button type="button" class="btn btn-secondary" id="btn-resetar-tema">Resetar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    </div>
 
-    <div id="cadastrar-admin" class="content-section">
-        <h2 class="section-title">Cadastrar Novo Administrador</h2>
+        <div id="cadastrar-admin" class="content-section">
+            <h2 class="section-title">Cadastrar Novo Administrador</h2>
 
-        <div class="row">
-            <div class="col-md-6">
-                <div>
-                    <h4 class="mb-3">Detalhes do Novo Administrador</h4>
-                    <div id="register-alert-placeholder" class="mb-3"></div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div>
+                        <h4 class="mb-3">Detalhes do Novo Administrador</h4>
+                        <div id="register-alert-placeholder" class="mb-3"></div>
 
-                    <form id="form-cadastro-admin-novo">
-                        <div class="mb-3">
-                            <label for="novo-admin-nome" class="form-label">Nome Completo</label>
-                            <input type="text" class="form-control" id="novo-admin-nome" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="novo-admin-email" class="form-label">E-mail (Login)</label>
-                            <input type="email" class="form-control" id="novo-admin-email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="novo-admin-senha" class="form-label">Senha</label>
-                            <input type="password" class="form-control" id="novo-admin-senha" required>
-                        </div>
+                        <form id="form-cadastro-admin-novo">
+                            <div class="mb-3">
+                                <label for="novo-admin-nome" class="form-label">Nome Completo</label>
+                                <input type="text" class="form-control" id="novo-admin-nome" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="novo-admin-email" class="form-label">E-mail (Login)</label>
+                                <input type="email" class="form-control" id="novo-admin-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="novo-admin-senha" class="form-label">Senha</label>
+                                <input type="password" class="form-control" id="novo-admin-senha" required>
+                            </div>
 
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-person-plus me-2"></i> Registrar Novo Admin
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus me-2"></i> Registrar Novo Admin
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
