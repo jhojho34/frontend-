@@ -348,11 +348,17 @@ footer {
 }
 
 .card-promo .card-title {
-    min-height: 2.5rem; 
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; 
-    -webkit-box-orient: vertical;
+    /* Manter apenas o básico para títulos longos não quebrarem o layout */
+    margin-bottom: 0.5rem; /* Ajuste o espaço inferior, se necessário */
+    font-size: 1.25rem; /* Ou o tamanho que você usa */
+
+    /* Se quiser garantir que ele tenha sempre uma única linha e não crie muito espaço: */
+    white-space: nowrap; /* Tenta manter em uma única linha */
+    overflow: hidden; /* Esconde o excesso */
+    text-overflow: ellipsis; /* Adiciona '...' */
+
+    /* Se o título for de tamanho variável, deixe o código limpo: */
+    /* Remova as propriedades de min-height e line-clamp completamente. */
 }
 
 .card-description {
