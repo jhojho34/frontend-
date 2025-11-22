@@ -1327,7 +1327,46 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (resetForm) { // 🚨 CORREÇÃO: Verifica se o formulário de reset existe
+    if (resetForm) { // 🚨 CORREÇÃO: Encapsulamento de toda a lógica
+
+        // 🚨 CRÍTICO: Elementos dos campos de senha movidos para dentro do IF
+        const novaSenhaInput = document.getElementById('nova-senha');
+        const confirmarSenhaInput = document.getElementById('confirmar-senha');
+
+        // Botões para mostrar/ocultar senha
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+
+        // Adicionar evento de clique nos botões de mostrar/ocultar senha
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    targetInput.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+
+        // Validação em tempo real da força da senha
+        novaSenhaInput.addEventListener('input', function () {
+            validatePasswordStrength(this.value);
+            clearError(); // Limpar erro ao usuário digitar
+        });
+
+        // Validação em tempo real da confirmação de senha
+        confirmarSenhaInput.addEventListener('input', function () {
+            clearError(); // Limpar erro ao usuário digitar
+        });
+
+        // Validação do formulário principal
         resetForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -1356,6 +1395,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // clearError();
             simulatePasswordReset();
         });
+        
     }
 
     // Elementos dos campos de senha
@@ -1441,6 +1481,19 @@ document.addEventListener('DOMContentLoaded', function () {
         novaSenhaInput.parentNode.appendChild(strengthIndicator);
     }
 
+    function showError(alertElement, message) {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = message;
+        resetError.classList.remove('d-none');
+
+        // Rolagem suave para o alerta
+        alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function clearError() {
+        resetError.classList.add('d-none');
+    }
+
     // Função para simular redefinição de senha
     function simulatePasswordReset() {
         // Mostrar spinner e desabilitar botão
@@ -1487,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
+
 });
 
 // Adicionar ao bloco do painel no script-principal.js
