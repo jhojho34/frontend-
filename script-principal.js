@@ -191,11 +191,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // Carregar promoções iniciais
     carregarPromocoes();
 
-    // 🚨 CORREÇÃO: ADICIONAR VERIFICAÇÃO DE EXISTÊNCIA (Linha 258)
+    // 🚨 CORREÇÃO: VERIFICAÇÃO DE EXISTÊNCIA (Linha 265)
     const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
     const limparFiltrosBtn = document.getElementById('limpar-filtros');
     
-    if (aplicarFiltrosBtn) { // Verifica se o elemento existe
+    // O erro estava aqui, porque esses botões só existem em index.html
+    if (aplicarFiltrosBtn) { 
         aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes);
     }
     if (limparFiltrosBtn) {
@@ -1170,8 +1171,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorMessage = document.getElementById('error-message');
 
     // 🚨 CORREÇÃO: Adiciona verificação de existência para o formulário de login
-    if (loginForm) { // <<< SÓ EXECUTA SE O FORM DE LOGIN EXISTIR
+    if (loginForm) { 
         loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             // ... (restante da lógica de login) ...
         });
     }
@@ -1246,7 +1251,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (contactForm) { // <<< SÓ EXECUTA SE O FORM DE CONTATO EXISTIR
+    if (contactForm) { // 🚨 CORREÇÃO: Verifica se o formulário de contato existe
         contactForm.addEventListener('submit', function (e) {
             // ... (restante da lógica de contato) ...
         });
@@ -1337,6 +1342,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.getElementById('submit-button');
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
+
+    if (resetForm) { // 🚨 CORREÇÃO: Verifica se o formulário de reset existe
+        resetForm.addEventListener('submit', function (e) {
+            // ... (restante da lógica de reset) ...
+        });
+    }
 
     // Elementos dos campos de senha
     const novaSenhaInput = document.getElementById('nova-senha');
