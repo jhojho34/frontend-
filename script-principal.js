@@ -1030,7 +1030,7 @@ async function salvarConfiguracoesAdmin(event) {
 
     const alertPlaceholder = document.getElementById('config-alert-placeholder');
     // Função auxiliar para mostrar alertas no painel
-    const mostrarAlerta = (msg, tipo) => {
+    const showToast = (msg, tipo) => {
         alertPlaceholder.innerHTML = `<div class="alert alert-${tipo}" role="alert">${msg}</div>`;
         alertPlaceholder.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
@@ -1042,14 +1042,14 @@ async function salvarConfiguracoesAdmin(event) {
         return;
     }
     if (senhaNova && senhaNova !== senhaConfirmar) {
-        mostrarAlerta('A nova senha e a confirmação não coincidem.', 'danger');
+        showToast('A nova senha e a confirmação não coincidem.', 'danger');
         return;
     }
 
     // 2. Requerimento de Senha Atual
     // Se o admin tentar mudar o e-mail/nome OU a senha, a senha atual é OBRIGATÓRIA para segurança.
     if (!senhaAtual) {
-        mostrarAlerta('A Senha Atual é obrigatória para salvar as alterações.', 'danger');
+        showToast('A Senha Atual é obrigatória para salvar as alterações.', 'danger');
         return;
     }
 
@@ -1504,7 +1504,7 @@ async function cadastrarNovoAdmin(event) {
 
     const alertPlaceholder = document.getElementById('register-alert-placeholder');
     // Função auxiliar para mostrar alertas no painel
-    const mostrarAlerta = (msg, tipo) => {
+    const showToast = (msg, tipo) => {
         alertPlaceholder.innerHTML = `<div class="alert alert-${tipo}" role="alert">${msg}</div>`;
         alertPlaceholder.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
@@ -1512,11 +1512,11 @@ async function cadastrarNovoAdmin(event) {
 
     // Validação básica
     if (!nome || !email || !password) {
-        mostrarAlerta('Todos os campos são obrigatórios.', 'danger');
+        showToast('Todos os campos são obrigatórios.', 'danger');
         return;
     }
     if (password.length < 6) {
-        mostrarAlerta('A senha deve ter pelo menos 6 caracteres.', 'danger');
+        showToast('A senha deve ter pelo menos 6 caracteres.', 'danger');
         return;
     }
 
@@ -1540,19 +1540,19 @@ async function cadastrarNovoAdmin(event) {
 
         if (!response.ok) {
             // Erros como e-mail duplicado (código 400)
-            mostrarAlerta(data.error || data.mensagem || 'Falha no registro.', 'danger');
+            showToast(data.error || data.mensagem || 'Falha no registro.', 'danger');
             return;
         }
 
         // Sucesso
-        mostrarAlerta(`Administrador "${nome}" registrado com sucesso!`, 'success');
+        showToast(`Administrador "${nome}" registrado com sucesso!`, 'success');
 
         // Limpar formulário
         document.getElementById('form-cadastro-admin-novo').reset();
 
     } catch (error) {
         console.error("Erro no registro:", error);
-        mostrarAlerta("Erro de conexão com o servidor.", 'danger');
+        showToast("Erro de conexão com o servidor.", 'danger');
     }
 }
 
