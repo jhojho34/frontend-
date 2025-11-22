@@ -191,9 +191,16 @@ document.addEventListener('DOMContentLoaded', function () {
     // Carregar promoções iniciais
     carregarPromocoes();
 
-    // Adicionar event listeners para os filtros
-    document.getElementById('aplicar-filtros').addEventListener('click', filtrarPromocoes);
-    document.getElementById('limpar-filtros').addEventListener('click', limparFiltros);
+    // 🚨 CORREÇÃO: ADICIONAR VERIFICAÇÃO DE EXISTÊNCIA (Linha 258)
+    const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
+    const limparFiltrosBtn = document.getElementById('limpar-filtros');
+    
+    if (aplicarFiltrosBtn) { // Verifica se o elemento existe
+        aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes);
+    }
+    if (limparFiltrosBtn) {
+        limparFiltrosBtn.addEventListener('click', limparFiltros);
+    }
 
     // Adicionar animação suave ao rolar para as seções
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -531,7 +538,7 @@ function inicializarGraficoCliques() {
     const ctx = document.getElementById('clicksChart').getContext('2d');
     const ctx2 = document.getElementById('clicksEvolutionChart').getContext('2d');
 
-    // SOLUÇÃO 1: Destruir instâncias antigas antes de criar as novas
+    // SOLUÇÃO 1: Destruir instâncias antigas
     if (clicksChartInstance) {
         clicksChartInstance.destroy();
     }
@@ -550,7 +557,7 @@ function inicializarGraficoCliques() {
         labels.push(date.toLocaleDateString('pt-BR'));
         data.push(Math.floor(Math.random() * 50) + 10);
     }
-
+    
     // SOLUÇÃO 2: Armazenar a nova instância
     clicksChartInstance = new Chart(ctx, { // <<< ARMAZENA NA GLOBAL
         type: 'line',
@@ -1030,7 +1037,7 @@ async function excluirPromocao(id) {
         Swal.fire(
             'Excluído!',
             'A promoção foi removida com sucesso.',
-            'success' // Ícone de sucesso do SweetAlert2
+            'success'
         );
 
     } catch (error) {
@@ -1162,6 +1169,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const loginError = document.getElementById('login-error');
     const errorMessage = document.getElementById('error-message');
 
+    // 🚨 CORREÇÃO: Adiciona verificação de existência para o formulário de login
+    if (loginForm) { // <<< SÓ EXECUTA SE O FORM DE LOGIN EXISTIR
+        loginForm.addEventListener('submit', function (e) {
+            // ... (restante da lógica de login) ...
+        });
+    }
+
     // As credenciais de exemplo foram removidas, pois a validação agora é feita no backend.
 
     loginForm.addEventListener('submit', function (e) {
@@ -1231,6 +1245,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.getElementById('submit-button');
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
+
+    if (contactForm) { // <<< SÓ EXECUTA SE O FORM DE CONTATO EXISTIR
+        contactForm.addEventListener('submit', function (e) {
+            // ... (restante da lógica de contato) ...
+        });
+    }
 
     // Validação do formulário
     contactForm.addEventListener('submit', function (e) {
