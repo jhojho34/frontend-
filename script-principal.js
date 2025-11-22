@@ -98,7 +98,7 @@ async function carregarPromocoes(promocoesParaExibir = null) {
     if (!container) {
         // Se o container não existe (e.g., estamos no painel.html), 
         // a função deve parar para evitar erros.
-        return; 
+        return;
     }
 
     container.innerHTML = 'Carregando ofertas...'; // Feedback de carregamento
@@ -199,10 +199,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (onde existe o contêiner de promoções)
     const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (promocoesContainer) { 
-        
+    if (promocoesContainer) {
+
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
-        carregarPromocoes(); 
+        carregarPromocoes();
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -228,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         });
-    } 
-    
+    }
+
     // NOTA: A inicialização do Painel do Administrador (inicializarPainel) 
     // está corretamente isolada em outro bloco logo abaixo, usando:
     // if (document.title.includes('Painel do Administrador')) { inicializarPainel(); }
@@ -1271,6 +1271,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // SCRIPT DE REDEFINIR SENHA:
 
+// SCRIPT DE REDEFINIR SENHA:
+
 document.addEventListener('DOMContentLoaded', function () {
     const resetForm = document.getElementById('reset-form');
     const resetError = document.getElementById('reset-error');
@@ -1279,13 +1281,109 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (resetForm) { // 🚨 ENCAPSULA TUDO AQUI
+    if (resetForm) { // 🚨 AGORA, TODO O CÓDIGO SÓ RODA SE O FORMULÁRIO EXISTIR
 
-        // CRÍTICO: MOVER DECLARAÇÕES DE CAMPO PARA DENTRO
+        // Variáveis de campo declaradas DENTRO do escopo condicional
         const novaSenhaInput = document.getElementById('nova-senha');
         const confirmarSenhaInput = document.getElementById('confirmar-senha');
-
         const toggleButtons = document.querySelectorAll('.toggle-password');
+
+
+        // Funções Auxiliares (movidas para dentro do escopo ou re-declaradas aqui)
+
+        function isPasswordStrong(password) {
+            // Pelo menos 6 caracteres, incluindo letras e números
+            const minLength = password.length >= 6;
+            const hasLetters = /[a-zA-Z]/.test(password);
+            const hasNumbers = /[0-9]/.test(password);
+            return minLength && hasLetters && hasNumbers;
+        }
+
+        function clearError() {
+            resetError.classList.add('d-none');
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            resetError.classList.remove('d-none');
+
+            // Rolagem suave para o alerta
+            resetError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function validatePasswordStrength(password) {
+            // Remover indicadores anteriores se existirem
+            const existingIndicator = document.getElementById('password-strength-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            if (!password) return;
+
+            let strengthText = '';
+            let strengthClass = '';
+
+            if (password.length < 6) {
+                strengthText = 'Senha muito curta';
+                strengthClass = 'strength-weak';
+            } else if (!isPasswordStrong(password)) {
+                strengthText = 'Senha fraca - use letras e números';
+                strengthClass = 'strength-weak';
+            } else if (password.length < 8) {
+                strengthText = 'Senha média';
+                strengthClass = 'strength-medium';
+            } else {
+                strengthText = 'Senha forte';
+                strengthClass = 'strength-strong';
+            }
+
+            const strengthIndicator = document.createElement('div');
+            strengthIndicator.id = 'password-strength-indicator';
+            strengthIndicator.className = `password-strength ${strengthClass}`;
+            strengthIndicator.textContent = strengthText;
+
+            // Inserir após o campo de nova senha
+            novaSenhaInput.parentNode.appendChild(strengthIndicator);
+        }
+
+        function simulatePasswordReset() {
+            // Mostrar spinner e desabilitar botão
+            buttonText.textContent = 'Redefinindo senha...';
+            buttonSpinner.classList.remove('d-none');
+            submitButton.disabled = true;
+
+            // Simular tempo de processamento
+            setTimeout(() => {
+                // Ocultar spinner e reabilitar botão
+                buttonText.textContent = 'Salvar nova senha';
+                buttonSpinner.classList.add('d-none');
+                submitButton.disabled = false;
+
+                // Limpar formulário
+                resetForm.reset();
+
+                // NOVO:
+                showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
+
+                // Remover indicador de força da senha
+                const strengthIndicator = document.getElementById('password-strength-indicator');
+                if (strengthIndicator) {
+                    strengthIndicator.remove();
+                }
+
+                // Rolagem suave para a mensagem de sucesso
+                resetSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Redirecionar para a página de login após alguns segundos
+                setTimeout(() => {
+                    window.location.href = "loginadm.html";
+                }, 2000);
+
+            }, 1500);
+        }
+
+        // LISTENERS DE EVENTOS
 
         // Adicionar evento de clique nos botões de mostrar/ocultar senha
         toggleButtons.forEach(button => {
@@ -1324,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const novaSenha = novaSenhaInput.value.trim();
             const confirmarSenha = confirmarSenhaInput.value.trim();
 
-            // Validar se os campos estão preenchidos
+            // Validar campos
             if (!novaSenha || !confirmarSenha) {
                 showError('Por favor, preencha todos os campos.');
                 return;
@@ -1343,129 +1441,20 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             // Se chegou aqui, o formulário é válido
-            // clearError();
             simulatePasswordReset();
         });
 
-    }
-
-    // Validação em tempo real da força da senha
-    novaSenhaInput.addEventListener('input', function () {
-        validatePasswordStrength(this.value);
-        clearError(); // Limpar erro ao usuário digitar
-    });
-
-    // Validação em tempo real da confirmação de senha
-    confirmarSenhaInput.addEventListener('input', function () {
-        clearError(); // Limpar erro ao usuário digitar
-    });
-
-    // Função para validar força da senha
-    function isPasswordStrong(password) {
-        // Pelo menos 6 caracteres, incluindo letras e números
-        const minLength = password.length >= 6;
-        const hasLetters = /[a-zA-Z]/.test(password);
-        const hasNumbers = /[0-9]/.test(password);
-
-        return minLength && hasLetters && hasNumbers;
-    }
-
-    // Função para validar e mostrar força da senha em tempo real
-    function validatePasswordStrength(password) {
-        // Remover indicadores anteriores se existirem
-        const existingIndicator = document.getElementById('password-strength-indicator');
-        if (existingIndicator) {
-            existingIndicator.remove();
-        }
-
-        if (!password) return;
-
-        let strengthText = '';
-        let strengthClass = '';
-
-        if (password.length < 6) {
-            strengthText = 'Senha muito curta';
-            strengthClass = 'strength-weak';
-        } else if (!isPasswordStrong(password)) {
-            strengthText = 'Senha fraca - use letras e números';
-            strengthClass = 'strength-weak';
-        } else if (password.length < 8) {
-            strengthText = 'Senha média';
-            strengthClass = 'strength-medium';
-        } else {
-            strengthText = 'Senha forte';
-            strengthClass = 'strength-strong';
-        }
-
-        const strengthIndicator = document.createElement('div');
-        strengthIndicator.id = 'password-strength-indicator';
-        strengthIndicator.className = `password-strength ${strengthClass}`;
-        strengthIndicator.textContent = strengthText;
-
-        // Inserir após o campo de nova senha
-        novaSenhaInput.parentNode.appendChild(strengthIndicator);
-    }
-
-    function showError(alertElement, message) {
-        const errorMessage = document.getElementById('error-message');
-        errorMessage.textContent = message;
-        resetError.classList.remove('d-none');
-
-        // Rolagem suave para o alerta
-        alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function clearError() {
-        resetError.classList.add('d-none');
-    }
-
-    // Função para simular redefinição de senha
-    function simulatePasswordReset() {
-        // Mostrar spinner e desabilitar botão
-        buttonText.textContent = 'Redefinindo senha...';
-        buttonSpinner.classList.remove('d-none');
-        submitButton.disabled = true;
-
-        // Simular tempo de processamento
-        setTimeout(() => {
-            // Ocultar spinner e reabilitar botão
-            buttonText.textContent = 'Salvar nova senha';
-            buttonSpinner.classList.add('d-none');
-            submitButton.disabled = false;
-
-            // Limpar formulário
-            resetForm.reset();
-
-            // NOVO:
-            showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
-
-            // Remover indicador de força da senha
-            const strengthIndicator = document.getElementById('password-strength-indicator');
-            if (strengthIndicator) {
-                strengthIndicator.remove();
-            }
-
-            // Rolagem suave para a mensagem de sucesso
-            resetSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Redirecionar para a página de login após alguns segundos
-            setTimeout(() => {
-                window.location.href = "loginadm.html";
-            }, 2000);
-
-        }, 1500);
-    }
-
-    // Validação em tempo real para remover alertas quando o usuário começar a digitar
-    const formInputs = document.querySelectorAll('#reset-form input');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function () {
-            if (!resetError.classList.contains('d-none')) {
-                clearError();
-            }
+        // Validação em tempo real para remover alertas quando o usuário começar a digitar
+        const formInputs = document.querySelectorAll('#reset-form input');
+        formInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                if (!resetError.classList.contains('d-none')) {
+                    clearError();
+                }
+            });
         });
-    });
 
+    } // 🚨 FIM DO if (resetForm)
 });
 
 // Adicionar ao bloco do painel no script-principal.js
