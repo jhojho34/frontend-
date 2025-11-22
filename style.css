@@ -348,17 +348,13 @@ footer {
 }
 
 .card-promo .card-title {
-    /* Manter apenas o básico para títulos longos não quebrarem o layout */
-    margin-bottom: 0.5rem; /* Ajuste o espaço inferior, se necessário */
-    font-size: 1.25rem; /* Ou o tamanho que você usa */
-
-    /* Se quiser garantir que ele tenha sempre uma única linha e não crie muito espaço: */
-    white-space: nowrap; /* Tenta manter em uma única linha */
-    overflow: hidden; /* Esconde o excesso */
-    text-overflow: ellipsis; /* Adiciona '...' */
-
-    /* Se o título for de tamanho variável, deixe o código limpo: */
-    /* Remova as propriedades de min-height e line-clamp completamente. */
+    margin-bottom: 0.5rem;
+    font-size: 1.25rem; 
+    color: #333; /* Ou a cor desejada */
+    font-weight: 500;
+    
+    /* Removendo regras que causam o '...' */
+    /* Nenhuma propriedade de 'overflow' ou 'line-clamp' deve estar aqui */
 }
 
 .card-description {
