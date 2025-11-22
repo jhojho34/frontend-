@@ -346,8 +346,11 @@ footer {
     display: flex; 
     flex-direction: column;
     
-    /* 🚨 AJUSTE CRÍTICO: Zera PADDING SUPERIOR e INFERIOR, mantém o lateral padrão de 1rem */
-    padding: 0 1rem 0 1rem !important; 
+    /* 🚨 NOVO AJUSTE CRÍTICO: Zera o padding vertical do corpo do card */
+    padding-top: 0.5rem !important;    /* Adiciona um pequeno padding superior, se necessário */
+    padding-bottom: 0.5rem !important; /* Adiciona um pequeno padding inferior, se necessário */
+    padding-left: 1rem;
+    padding-right: 1rem;
 }
 
 .card-promo .card-title {
@@ -359,9 +362,8 @@ footer {
     
     /* 🚨 AJUSTE CRÍTICO: Zera todas as margens verticais do H5 */
     margin-top: 0 !important;
-    margin-bottom: 0 !important; 
+    margin-bottom: 0 !important; /* Deve eliminar o espaço abaixo do título */
     padding-bottom: 0 !important; 
-    padding-top: 0 !important; /* ZERA TODA MARGEM VERTICAL NO TÍTULO */
 
     /* Mantenha suas outras regras de fonte */
     font-size: 1.25rem; 
@@ -373,18 +375,12 @@ footer {
 .card-promo .mt-auto {
     /* Garante que o bloco de preço comece imediatamente */
     margin-top: auto !important; 
-    padding-top: 0 !important; 
-    padding-bottom: 0 !important;
+    padding-top: 0 !important;
 }
 
 /* Ajuste o primeiro elemento dentro do mt-auto, que contém o preço (d-flex align-items-center mb-2) */
 .card-promo .mt-auto > div.d-flex {
-    margin-bottom: 0 !important; 
-    margin-top: 0 !important; 
-    padding-top: 0 !important;
+    margin-bottom: 0 !important; /* Zera a margem inferior deste bloco de preço */
+    margin-top: 0 !important; /* Zera qualquer margem superior que possa existir */
 }
 
-/* Anula a margem vertical do bloco que contém os preços */
-.card-promo .card-body .mb-2 {
-    margin-bottom: 0 !important;
-}
