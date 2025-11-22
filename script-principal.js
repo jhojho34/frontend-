@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const limparFiltrosBtn = document.getElementById('limpar-filtros');
 
     // O erro estava aqui, porque esses botões só existem em index.html
-    if (aplicarFiltrosBtn) { 
+    if (aplicarFiltrosBtn) {
         aplicarFiltrosBtn.addEventListener('click', filtrarPromocoes); // Linha 266
     }
     if (limparFiltrosBtn) {
@@ -1327,13 +1327,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (resetForm) { // 🚨 CORREÇÃO: Encapsulamento de toda a lógica
+    if (resetForm) { // 🚨 ENCAPSULA TUDO AQUI
 
-        // 🚨 CRÍTICO: Elementos dos campos de senha movidos para dentro do IF
+        // CRÍTICO: MOVER DECLARAÇÕES DE CAMPO PARA DENTRO
         const novaSenhaInput = document.getElementById('nova-senha');
         const confirmarSenhaInput = document.getElementById('confirmar-senha');
 
-        // Botões para mostrar/ocultar senha
         const toggleButtons = document.querySelectorAll('.toggle-password');
 
         // Adicionar evento de clique nos botões de mostrar/ocultar senha
@@ -1395,7 +1394,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // clearError();
             simulatePasswordReset();
         });
-        
+
     }
 
     // Elementos dos campos de senha
