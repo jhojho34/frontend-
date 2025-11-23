@@ -694,7 +694,7 @@ async function cadastrarPromocao() {
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
     const urlApi = idEdicao ? `/api/promocoes/${idEdicao}` : '/api/promocoes';
 
-    // 1. Coleta dos dados (permanece igual)
+    // 1. Coleta dos dados
     const nome = document.getElementById('produto-nome').value;
     const categoria = document.getElementById('produto-categoria').value;
     const descricao = document.getElementById('produto-descricao').value;
@@ -703,8 +703,14 @@ async function cadastrarPromocao() {
     const loja = document.getElementById('produto-loja').value;
     const imagem = document.getElementById('produto-imagem').value || 'https://via.placeholder.com/300x200/6c757d/ffffff?text=Produto+Sem+Imagem';
     const link = document.getElementById('produto-link').value;
-    const cuponsSelect = document.getElementById('cupons-relacionados');
-    const cuponsRelacionados = Array.from(cuponsSelect.selectedOptions).map(option => option.value);
+    
+    // 🎯 AJUSTE CRÍTICO AQUI: Captura o valor único do SELECT
+    const cupomSelecionadoId = document.getElementById('cupons-relacionados').value;
+    
+    // Converte o valor único em um Array:
+    // Se o ID for válido e não vazio, cria um array com esse ID. Se for vazio (''), cria um array vazio [].
+    const cuponsRelacionados = cupomSelecionadoId ? [cupomSelecionadoId] : [];
+
 
     const token = getToken();
     if (!token) {
@@ -722,7 +728,8 @@ async function cadastrarPromocao() {
         loja,
         imagem,
         link,
-        cuponsRelacionados: cuponsRelacionados
+        // Envia o Array corretamente formatado
+        cuponsRelacionados: cuponsRelacionados 
     };
 
     try {
@@ -741,6 +748,11 @@ async function cadastrarPromocao() {
             return;
         }
 
+        // NOVO: Tratamento de erro 404 para edição
+        if (metodoHttp === 'PUT' && response.status === 404) {
+             throw new Error('A promoção não foi encontrada no servidor. A edição falhou.');
+        }
+
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Erro desconhecido ao salvar.');
@@ -756,13 +768,10 @@ async function cadastrarPromocao() {
         await carregarPromocoesNaTabela();
         atualizarEstatisticas();
 
-        // --- CORREÇÃO: RECARREGAR A LISTA DA PÁGINA INICIAL ---
-        // Isso garante que, se o admin visitar o index.html, o produto estará lá.
-        // A função carregarPromocoes() deve estar disponível globalmente.
+        // Recarrega a lista da página inicial
         if (typeof carregarPromocoes === 'function') {
             carregarPromocoes();
         }
-        // ----------------------------------------------------
 
         showToast(`Promoção ${acao} com sucesso!`);
 
@@ -901,8 +910,11 @@ async function editarPromocao(id) {
 
     // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
     await carregarCuponsParaSelecao(promocao._id);
+    
+    // 2. Configurar o ID Oculto para o PUT (Edição)
+    document.getElementById('produto-id-hidden').value = id;
 
-    // 2. Preencher formulário com dados da promoção
+    // 3. Preencher formulário com dados da promoção
     document.getElementById('produto-nome').value = promocao.titulo;
     document.getElementById('produto-categoria').value = promocao.categoria;
     document.getElementById('produto-descricao').value = promocao.descricao || '';
@@ -912,28 +924,19 @@ async function editarPromocao(id) {
     document.getElementById('produto-imagem').value = promocao.imagem || '';
     document.getElementById('produto-link').value = promocao.link;
 
-    // 3. 🎯 Lógica para Selecionar os Cupons Relacionados
+    // 4. 🎯 Lógica para Selecionar o ÚNICO Cupom Relacionado (Seleção Única)
     const cuponsSelect = document.getElementById('cupons-relacionados');
     if (cuponsSelect) {
-        // Deseleciona todas as opções antes de começar
-        Array.from(cuponsSelect.options).forEach(option => {
-            option.selected = false;
-        });
+        // Deseleciona o valor atual (caso haja)
+        cuponsSelect.value = ""; 
 
-        // Seleciona os cupons que estão salvos na promoção
+        // Se houver cupons relacionados salvos, seleciona o primeiro (e único)
         if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
-            promocao.cuponsRelacionados.forEach(cupomId => {
-                const option = cuponsSelect.querySelector(`option[value="${cupomId}"]`);
-                if (option) {
-                    option.selected = true;
-                }
-            });
+            const primeiroCupomId = promocao.cuponsRelacionados[0];
+            // Define o valor do select (que é o ID do cupom)
+            cuponsSelect.value = primeiroCupomId; 
         }
     }
-
-    // 4. Configurar o ID Oculto para o PUT (Edição)
-    // Usamos o campo que já existe no HTML (<input type="hidden" id="produto-id-hidden">)
-    document.getElementById('produto-id-hidden').value = id;
 
     // 5. Navegar para a aba de cadastro
     document.querySelector('[data-section="cadastrar-promocao"]').click();
