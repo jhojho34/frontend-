@@ -361,18 +361,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Reenviar código
-    resendLink.addEventListener('click', function (e) {
-        e.preventDefault();
+    if (resendLink) { // 🚨 ENCAPSULAMENTO CRÍTICO AQUI
+        resendLink.addEventListener('click', function (e) {
+            e.preventDefault();
 
-        if (countdownActive) return;
+            if (countdownActive) return;
 
-        showToast('Novo código enviado! Verifique sua caixa de entrada.', 'success');
-        startCountdown();
+            showToast('Novo código enviado! Verifique sua caixa de entrada.', 'success');
+            startCountdown();
 
-        setTimeout(() => {
-            showToast(codeSuccess);
-        }, 3000);
-    });
+            setTimeout(() => {
+                showToast(codeSuccess);
+            }, 3000);
+        });
+    }
 
     // Função para validar e-mail (geralmente fora, mas mantido aqui por clareza)
     function isValidEmail(email) {
