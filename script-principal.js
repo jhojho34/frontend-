@@ -311,50 +311,54 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Validação do formulário de e-mail
-    emailForm.addEventListener('submit', function (e) {
-        e.preventDefault();
+    if (emailForm) { // 🚨 ENCAPSULAMENTO CRÍTICO AQUI
+        emailForm.addEventListener('submit', function (e) { // <-- Antiga Linha 314
+            e.preventDefault();
 
-        const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value;
 
-        // Função isValidEmail precisa ser definida (geralmente fora do DOMContentLoaded)
-        if (!isValidEmail(email)) { 
-            showToast('Por favor, insira um e-mail válido.', 'error');
-            return;
-        }
+            // Função isValidEmail precisa ser definida (geralmente fora do DOMContentLoaded)
+            if (!isValidEmail(email)) {
+                showToast('Por favor, insira um e-mail válido.', 'error');
+                return;
+            }
 
-        // Simulação de verificação de e-mail no sistema
-        if (email === 'ferreirajho400@gmail.com') {
-            showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
+            // Simulação de verificação de e-mail no sistema
+            if (email === 'ferreirajho400@gmail.com') {
+                showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
 
-            setTimeout(() => {
-                stepEmail.classList.add('d-none');
-                stepCode.classList.remove('d-none');
-                updateStepIndicator(2);
-                startCountdown();
-            }, 1500);
+                setTimeout(() => {
+                    stepEmail.classList.add('d-none');
+                    stepCode.classList.remove('d-none');
+                    updateStepIndicator(2);
+                    startCountdown();
+                }, 1500);
 
-        } else {
-            showToast('E-mail não encontrado em nossa base de dados.', 'error');
-        }
-    });
+            } else {
+                showToast('E-mail não encontrado em nossa base de dados.', 'error');
+            }
+        });
+    } // 🚨 FIM DO ENCAPSULAMENTO
 
     // Validação do formulário de código
-    codeForm.addEventListener('submit', function (e) {
-        e.preventDefault();
+    if (codeForm) {
+        codeForm.addEventListener('submit', function (e) {
+            e.preventDefault();
 
-        const code = document.getElementById('code').value;
+            const code = document.getElementById('code').value;
 
-        if (code === codigoCorreto) {
-            showToast('Código verificado! Redirecionando para redefinição.', 'success');
+            if (code === codigoCorreto) {
+                showToast('Código verificado! Redirecionando para redefinição.', 'success');
 
-            setTimeout(() => {
-                window.location.href = "redefinir-senha.html";
-            }, 2000);
+                setTimeout(() => {
+                    window.location.href = "redefinir-senha.html";
+                }, 2000);
 
-        } else {
-            showToast('Código incorreto. Tente novamente.', 'error');
-        }
-    });
+            } else {
+                showToast('Código incorreto. Tente novamente.', 'error');
+            }
+        });
+    }
 
     // Reenviar código
     resendLink.addEventListener('click', function (e) {
