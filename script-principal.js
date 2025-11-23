@@ -1802,7 +1802,7 @@ async function carregarCuponsNaTabela() {
     const tbody = document.getElementById('tabela-cupons');
     if (!tbody) return;
 
-    // Colspan alterado para 5
+    // Colspan alterado para 5, incluindo a nova coluna "Validade"
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
     
     const token = getToken();
@@ -1812,6 +1812,7 @@ async function carregarCuponsNaTabela() {
     }
 
     try {
+        // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
         const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -1830,10 +1831,7 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        
-        // 1. Normaliza HOJE para UTC puro (meia-noite) para ser o ponto de partida
-        const hoje = new Date();
-        const hojeUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); 
+        const hoje = new Date(); 
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
@@ -1843,15 +1841,15 @@ async function carregarCuponsNaTabela() {
             
             // --- Lógica de Status de Vencimento ---
             
-            // 2. Normaliza VALIDADE para UTC puro (meia-noite)
-            const validadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
+            // 1. Normaliza as datas para a meia-noite UTC (para cálculo preciso)
+            const timeAtualUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+            const timeValidadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
+
+            const expirado = timeValidadeUTC < timeAtualUTC; 
             
-            const expirado = validadeUTC < hojeUTC; 
-            
-            // 3. Calcula a diferença em dias (a subtração de dois valores UTC é exata)
-            const diffTime = validadeUTC - hojeUTC;
-            
-            // 4. FIX: Math.round() é usado no cálculo exato. O resultado para 01/12 será 8.
+            // 2. Calcula a diferença em dias (a subtração de dois valores UTC é exata)
+            // Usa Math.round() que é mais estável para essa diferença de dias inteiros.
+            const diffTime = timeValidadeUTC - timeAtualUTC;
             const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
             
             let statusBadge;
