@@ -10,9 +10,16 @@ let cuponsAtivosMap = new Map();
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
+    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
+    
+    if (!precoAntigoValido || precoAntigo <= precoNovo) {
+        if (precoNovo > 0) {
+            return 0; // Retorna 0 para ser exibido como 0%
+        }
+        return null; // Retorna null se não houver base para cálculo
+    }
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
-
 
 // =======================================================
 // FUNÇÃO CENTRALIZADA PARA EXIBIR NOTIFICAÇÕES (TOAST/MODAL)
@@ -103,7 +110,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...';
+    container.innerHTML = 'Carregando ofertas...'; 
 
     // --- PASSO 1: Busca e Processa Promoções e Cupons ---
     if (promocoesParaExibir === null) {
@@ -120,12 +127,9 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             const cuponsResponse = await fetch('/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
-
-                // Cria o mapa: Map<cupomId, cupomObjeto>
-                // Isso permite acessar rapidamente os detalhes do cupom pelo ID.
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
-                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
             }
 
         } catch (error) {
@@ -135,7 +139,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         }
     }
 
-    container.innerHTML = '';
+    container.innerHTML = ''; 
 
     // LÓGICA DE CHECAGEM DE RESULTADOS
     if (promocoesParaExibir.length === 0) {
@@ -153,66 +157,85 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    // --- PASSO 2: Lógica de Renderização com Cupons ---
+    // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
     promocoesParaExibir.forEach(promocao => {
+        // Calcula o desconto (será 0 se o preço antigo for 0 ou null, e null se não tiver base)
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
-        // NOVO: Renderização dos Cupons Relacionados
+        // 🎯 AJUSTE 1: Define o badge de desconto (só se o desconto for diferente de null)
+        const discountBadgeHtml = desconto !== null 
+            ? `<span class="discount-badge">-${desconto}%</span>` 
+            : '';
+
+        // Renderização dos Cupons Relacionados
         let cuponsHtml = '';
-        if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
+        const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
+        
+        const cuponsAtivosRelacionados = cuponsRelacionadosIds
+            .map(cupomId => cuponsAtivosMap.get(cupomId)) 
+            .filter(cupom => cupom); 
 
-            // Filtra e mapeia apenas os cupons que estão ativos e existem no mapa
-            const cuponsAtivosRelacionados = promocao.cuponsRelacionados
-                .map(cupomId => cuponsAtivosMap.get(cupomId))
-                .filter(cupom => cupom); // Remove IDs que não correspondem a cupons ativos
-
-            if (cuponsAtivosRelacionados.length > 0) {
-                cuponsHtml += '<div class="coupon-badges mt-2">';
-                cuponsAtivosRelacionados.forEach(cupom => {
-                    // Cria o botão de cupom que chama a função copiarCupom()
-                    cuponsHtml += `
+        if (cuponsAtivosRelacionados.length > 0) {
+             // Se houver cupons ativos, renderiza os botões clicáveis
+             cuponsHtml += '<div class="coupon-badges mt-2">';
+             cuponsAtivosRelacionados.forEach(cupom => {
+                 cuponsHtml += `
                      <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
                              title="${cupom.descricao}"
                              onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
                          <i class="bi bi-ticket"></i> ${cupom.codigo}
                      </button>
                  `;
-                });
-                cuponsHtml += '</div>';
-            }
+             });
+             cuponsHtml += '</div>';
+        } else {
+             // Renderiza o badge "Nenhum Cupom"
+             cuponsHtml = `
+                <div class="coupon-badges mt-2">
+                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
+                          title="Nenhum cupom disponível para este produto">
+                        <i class="bi bi-ticket-slash"></i> Nenhum Cupom
+                    </span>
+                </div>
+             `;
         }
-
-        // ... (Criação do Card HTML)
+        
+        // 🎯 AJUSTE 2: Define o HTML do Preço Antigo (só mostra se o desconto for diferente de null)
+        // Se desconto for 0, oldPriceHtml é renderizado com o valor de R$ 0,00 riscado.
+        const oldPriceHtml = desconto !== null 
+            ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo || 0)}</span>`
+            : '';
+        
+        // Criação do Card HTML
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
         card.innerHTML = `
-        <div class="card card-promo">
-            <div class="position-relative">
-                <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
-                <span class="discount-badge">-${desconto}%</span>
-            </div>
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">${promocao.titulo}</h5>
-                
-                <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
+            <div class="card card-promo">
+                <div class="position-relative">
+                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
+                    
+                    ${discountBadgeHtml} </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">${promocao.titulo}</h5>
+                    
+                    <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
 
-                ${cuponsHtml} 
-                
-                <div class="mt-auto">
-                    <div class="d-flex align-items-center mb-2 mt-2">
-                        <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
-                        <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="store-badge">${promocao.loja}</span>
-                        <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
-                            Ver Promoção
-                        </a>
+                    ${cuponsHtml}
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex align-items-center mb-2 mt-2">
+                            ${oldPriceHtml} <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="store-badge">${promocao.loja}</span>
+                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
+                                Ver Promoção
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
         container.appendChild(card);
     });
