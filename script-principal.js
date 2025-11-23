@@ -5,6 +5,9 @@ let promocoes = [];
 let cuponsPainel = [];
 let cuponsAtivosParaSelecao = [];
 
+// Variável global para armazenar cupons ativos no frontend (usada aqui)
+let cuponsAtivosMap = new Map(); 
+
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
@@ -97,26 +100,33 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     const container = document.getElementById('promocoes-container');
 
     if (!container) {
-        // Se o container não existe (e.g., estamos no painel.html), 
-        // a função deve parar para evitar erros.
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...'; // Feedback de carregamento
+    container.innerHTML = 'Carregando ofertas...'; 
 
-    // Se promocoesParaExibir for null (chamada inicial), busca na API
+    // --- PASSO 1: Busca e Processa Promoções e Cupons ---
     if (promocoesParaExibir === null) {
         try {
-            // Rota pública para carregar produtos
-            const response = await fetch('/api/promocoes');
-
-            if (!response.ok) {
+            // A. Busca Promoções
+            const promocoesResponse = await fetch('/api/promocoes');
+            if (!promocoesResponse.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
-
-            // Atualiza a variável global 'promocoes' com os dados do banco
-            promocoes = await response.json();
+            promocoes = await promocoesResponse.json();
             promocoesParaExibir = promocoes;
+
+            // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
+            const cuponsResponse = await fetch('/api/cupons'); // Rota pública
+            if (cuponsResponse.ok) {
+                const cuponsAtivos = await cuponsResponse.json();
+                
+                // Cria o mapa: Map<cupomId, cupomObjeto>
+                // Isso permite acessar rapidamente os detalhes do cupom pelo ID.
+                cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
+            } else {
+                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+            }
 
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
@@ -125,12 +135,11 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         }
     }
 
-    container.innerHTML = ''; // Limpa o container antes de renderizar
+    container.innerHTML = ''; 
 
-    // LÓGICA DE CHECAGEM DE RESULTADOS: Usa 'isFiltered' para exibir a mensagem correta.
+    // LÓGICA DE CHECAGEM DE RESULTADOS
     if (promocoesParaExibir.length === 0) {
         if (isFiltered) {
-            // Mensagem para quando o filtro não encontra nada (solicitação do usuário)
             container.innerHTML = `
                 <div class="col-12 text-center my-5">
                     <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
@@ -139,16 +148,41 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
                 </div>
             `;
         } else {
-            // Mensagem padrão (se não houver promoções no BD na carga inicial)
             container.innerHTML = '<p class="text-center text-muted">Nenhuma promoção encontrada no momento.</p>';
         }
         return;
     }
 
-    // A partir daqui, a lógica de renderização é executada
+    // --- PASSO 2: Lógica de Renderização com Cupons ---
     promocoesParaExibir.forEach(promocao => {
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
+        // NOVO: Renderização dos Cupons Relacionados
+        let cuponsHtml = '';
+        if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
+            
+            // Filtra e mapeia apenas os cupons que estão ativos e existem no mapa
+            const cuponsAtivosRelacionados = promocao.cuponsRelacionados
+                .map(cupomId => cuponsAtivosMap.get(cupomId)) 
+                .filter(cupom => cupom); // Remove IDs que não correspondem a cupons ativos
+
+            if (cuponsAtivosRelacionados.length > 0) {
+                 cuponsHtml += '<div class="coupon-badges mt-2">';
+                 cuponsAtivosRelacionados.forEach(cupom => {
+                     // Cria o botão de cupom que chama a função copiarCupom()
+                     cuponsHtml += `
+                         <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
+                                 title="${cupom.descricao}"
+                                 onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
+                             <i class="bi bi-ticket"></i> ${cupom.codigo}
+                         </button>
+                     `;
+                 });
+                 cuponsHtml += '</div>';
+            }
+        }
+        
+        // ... (Criação do Card HTML)
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
         card.innerHTML = `
@@ -160,8 +194,8 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">${promocao.titulo}</h5>
 
-                    <div class="mt-auto">
-                        <div class="d-flex align-items-center mb-2">
+                    ${cuponsHtml} <div class="mt-auto">
+                        <div class="d-flex align-items-center mb-2 mt-2">
                             <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
                             <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
                         </div>
