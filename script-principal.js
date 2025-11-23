@@ -1790,16 +1790,25 @@ async function cadastrarCupom(event) {
             },
             body: JSON.stringify(dadosCupom)
         });
-
-        if (response.status === 404) {
-             // Tratamento específico para o erro "Não encontrado"
-             throw new Error('O cupom não foi encontrado no servidor. Tente novamente.');
-        }
-
+        
+        // 🚨 NOVO TRATAMENTO DE ERRO APRIMORADO
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro desconhecido ao salvar o cupom.');
+            const errorData = await response.json().catch(() => ({}));
+            let errorMessage = errorData.error || 'Erro desconhecido ao salvar o cupom.';
+
+            if (response.status === 404) {
+                 errorMessage = 'O cupom não foi encontrado no servidor. A edição falhou.';
+            } else if (response.status === 400 && errorMessage.includes("ID inválido")) {
+                 // Este erro vem do backend (CastError) quando o ID é mal formado
+                 errorMessage = 'Erro no formato do ID do cupom. Recarregue a página.';
+            } else if (response.status === 401) {
+                 errorMessage = 'Sessão expirada. Faça login novamente.';
+                 window.location.href = 'loginadm.html';
+            }
+            
+            throw new Error(errorMessage);
         }
+        // 🚨 FIM DO NOVO TRATAMENTO DE ERRO APRIMORADO
 
         const acao = idEdicao ? 'atualizado' : 'cadastrado';
         limparFormularioCupom();
