@@ -220,11 +220,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const anchorLinks = document.querySelectorAll('a[href^="#"]');
 
         // Utilizamos for...of para garantir uma iteração segura e explícita
-        for (const anchor of anchorLinks) {
+        Array.from(anchorLinks).forEach(anchor => {
 
-            // 🚨 SOLUÇÃO FINAL: Garante que 'anchor' não é null/undefined e tem o método addEventListener
+            // 🚨 SOLUÇÃO FINAL (aplica a verificação dentro do loop, se necessário)
             if (!anchor || typeof anchor.addEventListener !== 'function') {
-                continue;
+                return; // Retorna para a próxima iteração se for inválido
             }
 
             // Linha 296 corrigida:
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     });
                 }
             });
-        }
+        });
     }
 
     // NOTA: A inicialização do Painel do Administrador (inicializarPainel) 
