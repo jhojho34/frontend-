@@ -211,16 +211,65 @@ function filtrarPromocoes() {
 }
 
 // Função para limpar filtros
-function limparFiltros() {
-    // 1. Resetar todos os campos de filtro
-    document.getElementById('busca-texto').value = ''; // Campo de busca por texto
+// ATENÇÃO: A função limparFiltros precisa ser atualizada para aceitar o argumento 'recarregar'
+function limparFiltros(recarregar = true) {
+    // Limpa o campo de busca por texto (assumindo id="busca-texto")
+    const buscaTexto = document.getElementById('busca-texto');
+    if (buscaTexto) buscaTexto.value = ''; 
+    
+    // Limpa os outros filtros
     document.getElementById('categoria').value = 'todas';
     document.getElementById('loja').value = 'todas';
     document.getElementById('preco-min').value = '';
     document.getElementById('preco-max').value = '';
 
-    // 2. Recarregar todas as promoções disponíveis
-    carregarPromocoes(null, false); 
+    // Só recarrega se for uma chamada do botão 'Limpar'
+    if (recarregar) {
+        carregarPromocoes(null, false); 
+    }
+}
+
+
+// NOVO: Função para aplicar o filtro ao clicar no card
+function aplicarFiltroRapido(categoriaSelecionada) {
+    // 1. Limpa outros filtros (texto, loja, preço) sem recarregar a página
+    limparFiltros(false); 
+
+    // 2. Define o valor da categoria no campo de filtro principal
+    const selectCategoria = document.getElementById('categoria');
+    if (selectCategoria) {
+        selectCategoria.value = categoriaSelecionada;
+    }
+
+    // 3. Executa a filtragem
+    filtrarPromocoes();
+    
+    // Opcional: Rola a página para a seção de resultados para dar feedback imediato
+    const container = document.getElementById('promocoes-container');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+// NOVO: Função para aplicar o filtro ao clicar no card
+function aplicarFiltroRapido(categoriaSelecionada) {
+    // 1. Limpa outros filtros (texto, loja, preço) sem recarregar a página
+    limparFiltros(false); 
+
+    // 2. Define o valor da categoria no campo de filtro principal
+    const selectCategoria = document.getElementById('categoria');
+    if (selectCategoria) {
+        selectCategoria.value = categoriaSelecionada;
+    }
+
+    // 3. Executa a filtragem
+    filtrarPromocoes();
+    
+    // Opcional: Rola a página para a seção de resultados para dar feedback imediato
+    const container = document.getElementById('promocoes-container');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
 }
 
 // Event Listeners (script.js)
