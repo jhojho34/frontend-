@@ -219,21 +219,26 @@ document.addEventListener('DOMContentLoaded', function () {
         // C. Adicionar animação suave ao rolar para as seções (Âncoras)
         const anchorLinks = document.querySelectorAll('a[href^="#"]');
 
-        if (anchorLinks) { // Verifica se encontrou algum link de âncora
-            anchorLinks.forEach(anchor => {
-                // Linha 285 corrigida: 
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
+        // Utilizamos for...of para garantir uma iteração segura e explícita
+        for (const anchor of anchorLinks) {
 
-                    // ESSENCIAL: Garante que o alvo existe antes de tentar a rolagem
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
+            // 🚨 SOLUÇÃO FINAL: Garante que 'anchor' não é null/undefined e tem o método addEventListener
+            if (!anchor || typeof anchor.addEventListener !== 'function') {
+                continue;
+            }
+
+            // Linha 285 corrigida:
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+
+                // ESSENCIAL: Garante que o alvo existe antes de tentar a rolagem
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
             });
         }
     }
