@@ -175,7 +175,7 @@ function filtrarPromocoes() {
 
     const promocoesFiltradas = promocoes.filter(promocao => {
         const atendeCategoria = categoria === 'todas' || promocao.categoria === categoria;
-        const atendeLoja = loja === 'todas' || promocao.loja.toLowerCase().includes(loja);
+        const atendeLoja = loja === 'todas' || promocao.loja.toLowerCase() === loja;
         const atendePreco = promocao.precoNovo >= precoMin && promocao.precoNovo <= precoMax;
 
         return atendeCategoria && atendeLoja && atendePreco;
