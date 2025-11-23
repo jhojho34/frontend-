@@ -1397,7 +1397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.opacity = '1';
 
     // 2. MANIPULAÇÃO DE LINKS (FADE-OUT)
-    
+
     // Filtro aprimorado: Seleciona todos os links
     document.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -1424,30 +1424,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // D) Exclui links que são âncoras DENTRO da página atual (ex: #topo)
             if (link.hash && link.pathname === pathname) {
-                return; 
+                return;
             }
-            
+
             // E) Exclui links que apontam para a página ATUAL
             // Isso evita que o clique em um link para index.html (estando em index.html) cause transição
             if (link.hostname === hostname && link.pathname === pathname && !link.hash) {
-                 return;
+                return;
             }
 
             // --- SE PASSAR POR TODOS OS FILTROS, É UMA NAVEGAÇÃO REAL ---
 
             // Previne a navegação padrão do navegador
-            e.preventDefault(); 
-            
+            e.preventDefault();
+
             // Inicia o efeito de saída (fade-out)
             document.body.classList.add('page-transition-out');
-            
+
             // Navega para a nova URL após a animação terminar
             setTimeout(() => {
                 window.location.href = novaURL;
             }, TRANSITION_DURATION);
         });
     });
-    
+
     // ... restante do seu código DOMContentLoaded ...
 });
 
@@ -1464,7 +1464,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function carregarAdministradoresNaTabela() {
     const tbody = document.getElementById('tabela-administradores');
     if (!tbody) return;
-    
+
     tbody.innerHTML = `<tr><td colspan="3" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando usuários...</td></tr>`;
 
     const token = getToken();
@@ -1475,10 +1475,10 @@ async function carregarAdministradoresNaTabela() {
 
     try {
         const urlApi = '/api/admin/all'; // Verifique se esta rota está correta no seu backend!
-        const response = await fetch(urlApi, { 
+        const response = await fetch(urlApi, {
             method: 'GET',
             headers: {
-                'Authorization': `Bearer ${token}` 
+                'Authorization': `Bearer ${token}`
             }
         });
 
@@ -1489,7 +1489,7 @@ async function carregarAdministradoresNaTabela() {
             try {
                 const errorData = await response.json();
                 // Usa a mensagem de erro do backend, se existir
-                errorMsg = errorData.error || errorData.mensagem || errorMsg; 
+                errorMsg = errorData.error || errorData.mensagem || errorMsg;
             } catch (e) {
                 // Falhou ao ler o JSON (o erro pode ser HTML, por exemplo)
             }
@@ -1500,15 +1500,15 @@ async function carregarAdministradoresNaTabela() {
                 window.location.href = 'loginadm.html';
                 return;
             }
-            
+
             // Lança o erro para o bloco catch
-            throw new Error(errorMsg); 
+            throw new Error(errorMsg);
         }
 
         const admins = await response.json();
-        
+
         // ... (restante da lógica de exibição de admins) ...
-        
+
         if (admins.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Nenhum outro administrador cadastrado.</td></tr>`;
             return;
@@ -1520,15 +1520,15 @@ async function carregarAdministradoresNaTabela() {
 
         admins.forEach(admin => {
             const isAdminLogado = admin._id === adminLogadoId;
-            
+
             html += `
                 <tr>
                     <td>${admin.nome || admin.username}</td>
                     <td>${admin.email}</td>
                     <td class="text-center">
-                        ${isAdminLogado ? 
-                            `<span class="badge bg-info">Você</span>` : 
-                            `
+                        ${isAdminLogado ?
+                    `<span class="badge bg-info">Você</span>` :
+                    `
                             <button class="btn btn-sm btn-outline-primary action-btn me-2" onclick="abrirEdicaoAdmin('${admin._id}')">
                                 <i class="bi bi-pencil"></i> Editar
                             </button>
@@ -1536,7 +1536,7 @@ async function carregarAdministradoresNaTabela() {
                                 <i class="bi bi-trash"></i> Excluir
                             </button>
                             `
-                        }
+                }
                     </td>
                 </tr>
             `;
@@ -1570,32 +1570,32 @@ async function abrirEdicaoAdmin(id) {
 
     try {
         // ASSUME que a rota para obter um único admin é /api/admin/:id
-        const response = await fetch(`/api/admin/${id}`, { 
+        const response = await fetch(`/api/admin/${id}`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-             const errorData = await response.json();
-             throw new Error(errorData.error || 'Falha ao carregar dados do usuário.');
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Falha ao carregar dados do usuário.');
         }
 
         const adminDataToEdit = await response.json();
-        
+
         // 1. Preenche o formulário de "Dados do Administrador" com os dados do usuário
         document.getElementById('admin-id-hidden').value = adminDataToEdit._id;
         document.getElementById('admin-nome').value = adminDataToEdit.nome || adminDataToEdit.username;
         document.getElementById('admin-email').value = adminDataToEdit.email;
-        
+
         // 2. Limpa os campos de senha para forçar que a senha atual seja inserida na edição/atualização
         document.getElementById('admin-senha-atual').value = '';
         document.getElementById('admin-senha-nova').value = '';
         document.getElementById('admin-senha-confirmar').value = '';
-        
+
         // 3. Destaca o formulário para o usuário saber que está editando
         const formTitle = document.querySelector('#configuracoes .col-md-6:first-child h4');
         if (formTitle) formTitle.textContent = `Dados do Administrador: ${adminDataToEdit.nome || adminDataToEdit.username} (Em Edição)`;
-        
+
         showToast(`Usuário ${adminDataToEdit.nome || adminDataToEdit.username} carregado para edição.`, 'info');
 
     } catch (error) {
@@ -1616,15 +1616,15 @@ async function excluirAdmin(id, nome) {
         showToast('Você não pode excluir a sua própria conta de administrador.', 'warning');
         return;
     }
-    
+
     // 1. Confirmação com SweetAlert2
     const result = await Swal.fire({
         title: 'Excluir Administrador?',
         text: `Tem certeza que deseja remover o usuário ${nome}? Esta ação é irreversível.`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#d33', 
-        cancelButtonColor: '#3085d6', 
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
         confirmButtonText: 'Sim, Excluir!',
         cancelButtonText: 'Cancelar'
     });
@@ -1654,7 +1654,7 @@ async function excluirAdmin(id, nome) {
 
         // Sucesso
         await carregarAdministradoresNaTabela(); // Recarrega a lista
-        
+
         Swal.fire('Excluído!', `O administrador ${nome} foi removido.`, 'success');
 
     } catch (error) {
@@ -1684,14 +1684,14 @@ async function carregarCuponsNoIndex() {
 
     try {
         // Rota pública para carregar cupons
-        const response = await fetch('/api/cupons'); 
+        const response = await fetch('/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons.');
         }
 
         const cupons = await response.json();
-        
+
         if (cupons.length === 0) {
             container.innerHTML = `
                 <div class="col-12 text-center my-4">
@@ -1722,7 +1722,7 @@ async function carregarCuponsNoIndex() {
                 </div>
             `;
         });
-        
+
         container.innerHTML = html;
 
     } catch (error) {
@@ -1736,7 +1736,7 @@ function copiarCupom(codigo, link) {
         .then(() => {
             showToast(`Código ${codigo} copiado! Redirecionando...`, 'success');
             // Abre o link em nova aba após a cópia
-            window.open(link, '_blank'); 
+            window.open(link, '_blank');
         })
         .catch(err => {
             showToast('Erro ao copiar o código. Tente manualmente.', 'error');
@@ -1804,7 +1804,7 @@ async function carregarCuponsNaTabela() {
 
     // Colspan alterado para 5, incluindo a nova coluna "Validade"
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
-    
+
     const token = getToken();
     if (!token) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Sessão não autenticada.</td></tr>`;
@@ -1813,17 +1813,17 @@ async function carregarCuponsNaTabela() {
 
     try {
         // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
-        const response = await fetch('/api/cupons/painel', { 
+        const response = await fetch('/api/cupons/painel', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({})); 
+            const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || 'Falha ao carregar cupons do painel.');
         }
 
-        cuponsPainel = await response.json(); 
+        cuponsPainel = await response.json();
 
         if (cuponsPainel.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
@@ -1831,26 +1831,33 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        const hoje = new Date(); 
+        const hoje = new Date();
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
-            
+
             // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-            
-            // --- Lógica de Status de Vencimento ---
-            
-            // 1. Normaliza as datas para a meia-noite (00:00:00) para comparação
-            const dataAtualNormalizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-            const dataValidadeNormalizada = new Date(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
 
-            const expirado = dataValidadeNormalizada < dataAtualNormalizada; 
-            
-            // 2. Calcula a diferença em dias (FIX: usando Math.round para estabilidade)
-            const diffTime = dataValidadeNormalizada.getTime() - dataAtualNormalizada.getTime();
-            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
-            
+            // --- Lógica de Status de Vencimento ---
+
+            const hoje = new Date();
+
+            // 1. Definição da data de HOJE em UTC (ignorando o fuso horário local)
+            //    Usamos Date.UTC para criar uma data absoluta
+            const timeHojeUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+
+            // 2. Definição da data de VALIDADE em UTC
+            const timeValidadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
+
+            const expirado = timeValidadeUTC < timeHojeUTC;
+
+            // 3. Calcula a diferença em dias corridos
+            const diffTime = timeValidadeUTC - timeHojeUTC;
+
+            // 4. Calcula a diferença em dias (Usamos Math.round para estabilidade)
+            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
             let statusBadge;
 
             if (expirado) {
@@ -1862,10 +1869,10 @@ async function carregarCuponsNaTabela() {
                 // 1 a 7 dias
                 statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                // Mais de 7 dias (Ex: 8 dias) - Mostra contagem exata e status Ativo
+                // Mais de 7 dias (Contagem exata)
                 statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
-            
+
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
 
             // --- Fim da Lógica de Status ---
@@ -1896,7 +1903,7 @@ async function carregarCuponsNaTabela() {
 }
 
 function editarCupom(id) {
-    const cupom = cuponsPainel.find(c => c._id === id); 
+    const cupom = cuponsPainel.find(c => c._id === id);
     if (!cupom) {
         showToast('Cupom não encontrado.', 'error');
         return;
@@ -1907,7 +1914,7 @@ function editarCupom(id) {
     document.getElementById('cupom-descricao').value = cupom.descricao;
     document.getElementById('cupom-loja').value = cupom.loja;
     document.getElementById('cupom-link').value = cupom.link;
-    
+
     // NOVO: Preenche o campo de data (formatado como YYYY-MM-DD para input[type="date"])
     const dataISO = new Date(cupom.validade).toISOString().split('T')[0];
     document.getElementById('cupom-validade').value = dataISO;
