@@ -2068,36 +2068,38 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('/api/cupons');
+        const response = await fetch('/api/cupons'); 
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
         }
 
-        cuponsAtivosParaSelecao = await response.json();
+        const cuponsAtivos = await response.json();
+        cuponsAtivosParaSelecao = cuponsAtivos; // Atualiza a variável global
 
         let htmlOptions = '';
-
-        if (cuponsAtivosParaSelecao.length === 0) {
-            htmlOptions = '<option value="" disabled>Nenhum cupom ativo encontrado</option>';
+        
+        // 🎯 AJUSTE CRÍTICO: Adiciona a opção "Nenhum Cupom" com valor vazio
+        htmlOptions += '<option value="">--- NENHUM CUPOM ---</option>';
+        
+        if (cuponsAtivos.length === 0) {
+            htmlOptions = '<option value="" selected>Nenhum cupom ativo encontrado</option>';
             selectElement.innerHTML = htmlOptions;
             return;
         }
 
-        cuponsAtivosParaSelecao.forEach(cupom => {
+        cuponsAtivos.forEach(cupom => {
             // Valor: cupom._id. Texto: Código do Cupom (Loja) - Descrição
             htmlOptions += `<option value="${cupom._id}">${cupom.codigo} (${cupom.loja}) - ${cupom.descricao}</option>`;
         });
 
         selectElement.innerHTML = htmlOptions;
-
-        // Se estivermos em modo de edição, vamos selecionar os cupons existentes
-        if (promocaoId) {
-            // A lógica de seleção será feita em editarPromocao()
-        }
+        
+        // Se estivermos em modo de edição, a função editarPromocao() fará a seleção.
 
     } catch (error) {
         console.error("Erro ao carregar cupons para seleção:", error);
+        // Exibir a opção de erro
         selectElement.innerHTML = '<option value="" disabled>Erro ao carregar cupons</option>';
     }
 }
