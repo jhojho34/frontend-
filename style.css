@@ -378,22 +378,25 @@ footer {
 
 .card-promo .position-relative {
     /* Mantenha a altura fixa do contêiner para ALINHAR O CARD BODY ABAIXO */
-    height: 250px; 
+    margin-bottom: 0 !important;
+    height: 200px; 
     overflow: hidden; 
 }
 
 .card-promo .card-img-top {
-    height: 180px; /* Altura fixa para a imagem para uniformidade */
-    object-fit: contain; /* Redimensiona a imagem para caber sem cortar, mantendo proporção */
-    padding: 10px; /* Um pequeno padding para a imagem não colar nas bordas */
-    background-color: #f8f9fa; /* Fundo claro para imagens com transparência */
+    height: 180px;
+    object-fit: contain;
+
+    /* 🎯 AJUSTE CRÍTICO: Remova ou reduza o padding vertical (superior e inferior) */
+    padding: 0 10px 0 10px; /* Mantém 10px nas laterais, mas remove em cima/baixo */
+
+    background-color: #f8f9fa;
+    margin-bottom: 0 !important; /* Garante que não haja margem na parte inferior */
 }
 
 /* Os outros blocos (card-body e card-title) permanecem como estão */
 .card-promo .card-body {
-    padding-top: 10px; /* Reduz o padding superior do corpo do card */
-    padding-bottom: 15px;
-    padding: 15px; /* Padding padrão ligeiramente reduzido */
+    padding: 8px 15px 15px 15px;
     flex-grow: 1; /* Permite que o body preencha o espaço restante, se houver */
     display: flex;
     flex-direction: column;
