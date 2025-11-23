@@ -72,60 +72,51 @@
 
     <section class="container mb-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="search-box">
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control form-control-lg" placeholder="Buscar no PromoShop">
-                        <button class="btn btn-primary" type="button">
-                            <i class="bi bi-search"></i> Buscar
+            <div class="col-md-10">
+                <div class="search-box mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg"
+                            placeholder="Buscar no PromoShop por palavra-chave" id="busca-texto">
+                        <button class="btn btn-primary" type="button" onclick="filtrarPromocoes()">
+                            <i class="bi bi-search"></i> Buscar/Filtrar
                         </button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <section class="container filter-section">
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <label for="categoria" class="form-label">Categoria</label>
-                <select class="form-select" id="categoria">
-                    <option selected value="todas">Todas as categorias</option>
-                    <option value="tecnologia">Tecnologia</option>
-                    <option value="eletronicos">Eletrônicos</option>
-                    <option value="casa">Casa e Decoração</option>
-                    <option value="moda">Moda</option>
-                    <option value="beleza">Beleza e Saúde</option>
-                </select>
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="loja" class="form-label">Loja</label>
-                <select class="form-select" id="loja">
-                    <option selected value="todas">Todas as lojas</option>
-                    <option value="amazon">Amazon</option>
-                    <option value="shopee">Shopee</option>
-                    <option value="magalu">Magazine Luiza</option>
-                    <option value="mercado">Mercado Livre</option>
-                    <option value="aliexpress">AliExpress</option>
-                </select>
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="preco-min" class="form-label">Preço Mínimo</label>
-                <input type="number" class="form-control" id="preco-min" placeholder="R$ 0">
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="preco-max" class="form-label">Preço Máximo</label>
-                <input type="number" class="form-control" id="preco-max" placeholder="R$ 1000">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-12 text-center">
-                <button class="btn btn-primary" id="aplicar-filtros">
-                    <i class="bi bi-funnel"></i> Aplicar Filtros
-                </button>
-                <button class="btn btn-outline-secondary ms-2" id="limpar-filtros">
-                    <i class="bi bi-arrow-clockwise"></i> Limpar
-                </button>
+                <div class="row g-3 align-items-center">
+
+                    <div class="col-sm-3">
+                        <label for="categoria" class="form-label visually-hidden">Categoria</label>
+                        <select class="form-select" id="categoria">
+                            <option value="todas">Todas as Categorias</option>
+                            <option value="eletronicos">Eletrônicos</option>
+                            <option value="moda">Moda</option>
+                            <option value="casa">Casa e Decoração</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="loja" class="form-label visually-hidden">Loja</label>
+                        <select class="form-select" id="loja">
+                            <option value="todas">Todas as Lojas</option>
+                            <option value="amazon">Amazon</option>
+                            <option value="magazineluiza">Magazine Luiza</option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="preco-min" class="form-label visually-hidden">Preço Mínimo</label>
+                        <input type="number" class="form-control" id="preco-min" placeholder="Preço Mín." min="0"
+                            step="0.01">
+                    </div>
+
+                    <div class="col-sm-3">
+                        <label for="preco-max" class="form-label visually-hidden">Preço Máximo</label>
+                        <input type="number" class="form-control" id="preco-max" placeholder="Preço Máx." min="0"
+                            step="0.01">
+                    </div>
+
+                </div>
             </div>
         </div>
     </section>

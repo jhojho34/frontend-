@@ -179,22 +179,30 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
 }
 
 // Função para filtrar promoções (Sem alterações, mas incluída para contexto)
+// Função para filtrar promoções (com busca por texto)
 function filtrarPromocoes() {
+    // 1. Capturar o texto de busca (NOVO)
+    const textoBusca = document.getElementById('busca-texto').value.toLowerCase(); 
+    
+    // 2. Capturar os outros filtros (como já estava)
     const categoria = document.getElementById('categoria').value;
     const loja = document.getElementById('loja').value;
     const precoMin = parseFloat(document.getElementById('preco-min').value) || 0;
     const precoMax = parseFloat(document.getElementById('preco-max').value) || Infinity;
 
     const promocoesFiltradas = promocoes.filter(promocao => {
+        // 3. Adicionar a verificação de texto (NOVO)
+        const atendeTexto = promocao.titulo.toLowerCase().includes(textoBusca) || 
+                            (promocao.descricao && promocao.descricao.toLowerCase().includes(textoBusca)); // Assumindo que sua promoção tem um campo 'descricao'
+                            
         const atendeCategoria = categoria === 'todas' || promocao.categoria === categoria;
         const atendeLoja = loja === 'todas' || promocao.loja.toLowerCase() === loja;
         const atendePreco = promocao.precoNovo >= precoMin && promocao.precoNovo <= precoMax;
 
-        return atendeCategoria && atendeLoja && atendePreco;
+        // 4. Incluir o filtro de texto no retorno
+        return atendeTexto && atendeCategoria && atendeLoja && atendePreco;
     });
 
-    // Chama a função de carregamento, passando as promoções filtradas 
-    // e o flag 'true' para indicar que é uma operação de filtro.
     carregarPromocoes(promocoesFiltradas, true);
 }
 
