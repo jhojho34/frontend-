@@ -1802,6 +1802,7 @@ async function carregarCuponsNaTabela() {
     const tbody = document.getElementById('tabela-cupons');
     if (!tbody) return;
 
+    // Colspan alterado para 5, incluindo a nova coluna "Validade"
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
     
     const token = getToken();
@@ -1811,18 +1812,18 @@ async function carregarCuponsNaTabela() {
     }
 
     try {
-        // Rota protegida do painel que retorna todos os cupons (ativos e vencidos)
+        // Usamos a rota do painel para listar todos os cupons, incluindo os vencidos
         const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({})); // Tenta ler o JSON do erro
+            const errorData = await response.json().catch(() => ({})); 
             throw new Error(errorData.error || 'Falha ao carregar cupons do painel.');
         }
 
-        cuponsPainel = await response.json(); // Salva na variável global (assumindo que 'cuponsPainel' é global)
+        cuponsPainel = await response.json(); 
 
         if (cuponsPainel.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
@@ -1830,33 +1831,42 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        const hoje = new Date(); // Data e hora atuais para comparação
+        const hoje = new Date(); 
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
-            const dataFormatada = dataValidade.toLocaleDateString('pt-BR');
-            const expirado = dataValidade < hoje;
             
-            // Lógica para determinar o status e badge
+            // 🚨 CORREÇÃO DO FUSO HORÁRIO:
+            // Força a função toLocaleDateString a formatar a data usando o fuso horário UTC.
+            const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+            
+            // --- Lógica de Status de Vencimento Ajustada ---
+            
+            // Normaliza 'hoje' e 'dataValidade' para comparar apenas o dia
+            const dataAtualSemTempo = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+            const dataValidadeSemTempo = new Date(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
+
+            const expirado = dataValidadeSemTempo < dataAtualSemTempo; 
+            
+            // Calcula a diferença em dias corridos (arredondando para cima para pegar o dia inteiro)
+            const diffTime = dataValidadeSemTempo.getTime() - dataAtualSemTempo.getTime();
+            const diferencaDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
             let statusBadge;
-            let diferencaDias = 0;
 
             if (expirado) {
                 statusBadge = `<span class="badge bg-danger">Expirado</span>`;
+            } else if (diferencaDias === 0) {
+                statusBadge = `<span class="badge bg-warning text-dark">Vence Hoje!</span>`;
+            } else if (diferencaDias <= 7) {
+                statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                // Calcula a diferença em dias (arredondando para baixo)
-                diferencaDias = Math.floor((dataValidade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
-                
-                if (diferencaDias <= 7) {
-                    statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
-                } else {
-                    statusBadge = `<span class="badge bg-success">Ativo</span>`;
-                }
+                statusBadge = `<span class="badge bg-success">Ativo</span>`;
             }
             
-            // O conteúdo da célula de Validade será a data + o badge de status
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
 
+            // --- Fim da Lógica de Status ---
 
             html += `
                 <tr>
