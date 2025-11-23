@@ -1398,3 +1398,32 @@ async function cadastrarNovoAdmin(event) {
 // 🚨 Lembre-se de anexar esta função ao formulário na função inicializarFormularios:
 // Localização: function inicializarFormularios() { ... }
 
+const duracaoAnimacao = 500; // 500ms
+
+// 1. Lógica para a SAÍDA (Intercepta o clique em um link)
+document.addEventListener('DOMContentLoaded', () => {
+    // Adiciona a classe fade-in ao corpo da página (a página aparece)
+    document.body.classList.add('fade-in');
+
+    document.querySelectorAll('a:not([target="_blank"]):not([data-section])').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const novaURL = link.href;
+
+            // Previne a navegação imediata
+            e.preventDefault(); 
+            
+            // Inicia o efeito de saída (fade-out)
+            document.body.classList.remove('fade-in');
+            document.body.classList.add('fade-out');
+
+            // Espera a animação terminar e só então navega
+            setTimeout(() => {
+                window.location.href = novaURL;
+            }, duracaoAnimacao);
+        });
+    });
+});
+
+// 2. Lógica para a ENTRADA (Em CADA página HTML)
+// No seu HTML, o <body> deve começar com opacidade 0 (ou a classe fade-out)
+// e o JS acima irá removê-la para aplicar o fade-in ao carregar.

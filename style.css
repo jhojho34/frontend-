@@ -432,3 +432,15 @@ footer {
     opacity: 0;
     transition: opacity 0.5s ease-out;
 }
+
+/* Efeito para quando a página está sendo carregada ou saindo */
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.5s ease-out; /* Duração da animação de saída */
+}
+
+/* Efeito para quando a página já carregou e está entrando */
+.fade-in {
+    opacity: 1;
+    transition: opacity 0.5s ease-in; /* Duração da animação de entrada */
+}
