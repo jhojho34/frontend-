@@ -1762,12 +1762,25 @@ async function cadastrarCupom(event) {
         return;
     }
 
+    // 1. Captura a string de data (Ex: '2025-12-01')
+    const validadeString = document.getElementById('cupom-validade').value; 
+    
+    // 2. Cria um objeto Date puro.
+    let validadeData = new Date(validadeString);
+
+    // 🚀 FIX FUSO HORÁRIO (ESSENCIAL):
+    // Move o horário para o meio-dia (12h) UTC (Greenwich).
+    // Isso garante que o dia (01/12) seja salvo corretamente no banco de dados,
+    // eliminando o bug de ser puxado para o dia anterior pelo fuso horário local.
+    validadeData.setUTCHours(12, 0, 0, 0); 
+
+    // 3. Monta o objeto de dados com o Date corrigido
     const dadosCupom = {
         codigo: document.getElementById('cupom-codigo').value,
         descricao: document.getElementById('cupom-descricao').value,
         loja: document.getElementById('cupom-loja').value,
         link: document.getElementById('cupom-link').value,
-        validade: document.getElementById('cupom-validade').value,
+        validade: validadeData // Enviamos o objeto Date corrigido
     };
 
     try {
@@ -1787,8 +1800,14 @@ async function cadastrarCupom(event) {
 
         const acao = idEdicao ? 'atualizado' : 'cadastrado';
         limparFormularioCupom();
+        
+        // Recarrega as tabelas e o index
         await carregarCuponsNaTabela();
-        carregarCuponsNoIndex(); // Atualiza a lista pública
+        // A função carregarCuponsNoIndex precisa estar acessível globalmente,
+        // então verificamos se existe antes de chamar.
+        if (typeof carregarCuponsNoIndex === 'function') {
+            carregarCuponsNoIndex(); 
+        }
 
         showToast(`Cupom ${acao} com sucesso!`);
 
