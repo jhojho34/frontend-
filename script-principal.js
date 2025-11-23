@@ -199,10 +199,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (index.html)
     const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (promocoesContainer) { 
-        
+    if (promocoesContainer) {
+
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
-        carregarPromocoes(); 
+        carregarPromocoes();
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -220,20 +220,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Utilizamos o for...of para iteração robusta
         // for (const anchor of anchorLinks) {
-            
-            // 🚨 SOLUÇÃO DE FORÇA BRUTA: Se, por algum motivo, o elemento for null, ignoramos.
+
+        // 🚨 SOLUÇÃO DE FORÇA BRUTA: Se, por algum motivo, o elemento for null, ignoramos.
         //    if (!anchor || typeof anchor.addEventListener !== 'function') {
         //        continue; 
         //    }
-            
-            // A Linha 296 deve cair aqui agora:
+
+        // A Linha 296 deve cair aqui agora:
         //    anchor.addEventListener('click', function (e) {
         //        e.preventDefault();
-                
-                // Note que o `this` é sempre o `anchor` aqui. 
+
+        // Note que o `this` é sempre o `anchor` aqui. 
         //        const target = document.querySelector(this.getAttribute('href'));
 
-                // Garante que o alvo existe antes de tentar a rolagem
+        // Garante que o alvo existe antes de tentar a rolagem
         //        if (target) {
         //            target.scrollIntoView({
         //                behavior: 'smooth',
@@ -250,6 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Conteúdo do script-senha.js
+// Conteúdo do script-senha.js
 document.addEventListener('DOMContentLoaded', function () {
     // Elementos da página
     const stepEmail = document.getElementById('step-email');
@@ -257,19 +258,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const emailForm = document.getElementById('email-form');
     const codeForm = document.getElementById('code-form');
     const emailError = document.getElementById('email-error');
-    const emailSuccess = document.getElementById('email-success');
     const codeError = document.getElementById('code-error');
+    const emailSuccess = document.getElementById('email-success');
     const codeSuccess = document.getElementById('code-success');
     const resendLink = document.getElementById('resend-link');
     const countdownElement = document.getElementById('countdown');
     const timerElement = document.getElementById('timer');
 
-    // Código fixo para demonstração
+    // CÓDIGO FIXO E VARIÁVEIS DE CONTROLE
     const codigoCorreto = "123456";
-
-    // Variáveis de controle
     let countdownActive = false;
     let countdownTime = 60;
+
+    // VARIÁVEIS QUE PRECISAM SER ACESSÍVEIS (Declaradas uma única vez!)
+    const emailInput = document.getElementById('email');
+    const codeInput = document.getElementById('code'); // 🚨 DECLARAÇÃO ÚNICA E CORRETA AQUI
 
     // Atualizar indicador de etapas
     function updateStepIndicator(step) {
@@ -293,10 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 🚨 CORREÇÃO DA LINHA 297: Encapsular o addEventListener em uma verificação de existência
-    if (codeInput) { 
-        // Formatação do código (adiciona automaticamente o traço)
-        codeInput.addEventListener('input', function (e) { // Linha 297 corrigida
+    // LÓGICA DE FORMATAÇÃO DE CÓDIGO (Agora usando a variável codeInput)
+    if (codeInput) {
+        codeInput.addEventListener('input', function (e) {
             let value = e.target.value.replace(/\D/g, '');
 
             if (value.length > 6) {
@@ -314,30 +316,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const email = document.getElementById('email').value;
 
-        // Validação simples de e-mail
-        if (!isValidEmail(email)) {
+        // Função isValidEmail precisa ser definida (geralmente fora do DOMContentLoaded)
+        if (!isValidEmail(email)) { 
             showToast('Por favor, insira um e-mail válido.', 'error');
             return;
         }
 
         // Simulação de verificação de e-mail no sistema
-        // Em um sistema real, aqui seria feita uma requisição para o backend
         if (email === 'ferreirajho400@gmail.com') {
-            // E-mail encontrado
             showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
 
-            // Simular envio do código (em um sistema real, seria enviado por e-mail)
             setTimeout(() => {
                 stepEmail.classList.add('d-none');
                 stepCode.classList.remove('d-none');
                 updateStepIndicator(2);
-
-                // Iniciar contador para reenvio
                 startCountdown();
             }, 1500);
 
         } else {
-            // E-mail não encontrado
             showToast('E-mail não encontrado em nossa base de dados.', 'error');
         }
     });
@@ -348,11 +344,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const code = document.getElementById('code').value;
 
-        // Verificar se o código está correto
         if (code === codigoCorreto) {
             showToast('Código verificado! Redirecionando para redefinição.', 'success');
 
-            // Redirecionar após alguns segundos
             setTimeout(() => {
                 window.location.href = "redefinir-senha.html";
             }, 2000);
@@ -368,25 +362,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (countdownActive) return;
 
-        // Simular reenvio do código
         showToast('Novo código enviado! Verifique sua caixa de entrada.', 'success');
-
-        // Reiniciar contador
         startCountdown();
 
-        // Ocultar alerta de sucesso após alguns segundos
         setTimeout(() => {
             showToast(codeSuccess);
         }, 3000);
     });
 
-    // Função para validar e-mail
+    // Função para validar e-mail (geralmente fora, mas mantido aqui por clareza)
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
 
-    // Função para iniciar contador de reenvio
+    // Funções de Contagem (startCountdown, updateCountdown)
+
     function startCountdown() {
         countdownActive = true;
         countdownTime = 60;
@@ -410,32 +401,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 1000);
     }
 
-    // Função para atualizar o contador
     function updateCountdown() {
         timerElement.textContent = countdownTime;
     }
 
-    // Validação em tempo real para remover alertas quando o usuário começar a digitar
-    const emailInput = document.getElementById('email');
-    const codeInput = document.getElementById('code');
+    // Validação em tempo real para remover alertas
+    if (emailInput) {
+        emailInput.addEventListener('input', function () {
+            if (!emailError.classList.contains('d-none')) {
+                showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
+            }
+            if (!emailSuccess.classList.contains('d-none')) {
+                showToast(emailSuccess);
+            }
+        });
+    }
 
-    emailInput.addEventListener('input', function () {
-        if (!emailError.classList.contains('d-none')) {
-            showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
-        }
-        if (!emailSuccess.classList.contains('d-none')) {
-            showToast(emailSuccess);
-        }
-    });
-
-    codeInput.addEventListener('input', function () {
-        if (!codeError.classList.contains('d-none')) {
-            showToast(codeError);
-        }
-        if (!codeSuccess.classList.contains('d-none')) {
-            showToast(codeSuccess);
-        }
-    });
+    if (codeInput) {
+        codeInput.addEventListener('input', function () {
+            if (!codeError.classList.contains('d-none')) {
+                showToast(codeError);
+            }
+            if (!codeSuccess.classList.contains('d-none')) {
+                showToast(codeSuccess);
+            }
+        });
+    }
 });
 
 // Conteúdo do script-painel.js
