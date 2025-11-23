@@ -582,9 +582,6 @@ function inicializarFormularios() {
         formCadastroNovoAdmin.addEventListener('submit', cadastrarNovoAdmin);
     }
 
-    // Botões de personalização do tema
-    document.getElementById('btn-aplicar-tema').addEventListener('click', aplicarTema);
-    document.getElementById('btn-resetar-tema').addEventListener('click', resetarTema);
 }
 
 // ... (Dentro do Conteúdo do script-painel.js) ...
@@ -624,6 +621,7 @@ function inicializarPainel() {
     inicializarFormularios(); // Inicia os listeners dos outros formulários
     carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
+    carregarAdministradoresNaTabela();
 }
 
 
@@ -1045,27 +1043,6 @@ async function salvarConfiguracoesAdmin(event) {
 // const formConfig = document.getElementById('form-config-admin');
 // formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
 
-function aplicarTema() {
-    const corPrincipal = document.getElementById('tema-cor-principal').value;
-    const corSecundaria = document.getElementById('tema-cor-secundaria').value;
-
-    // Aplicar cores ao CSS (em um sistema real, isso seria mais sofisticado)
-    document.documentElement.style.setProperty('--primary-blue', corPrincipal);
-    document.documentElement.style.setProperty('--secondary-blue', corSecundaria);
-
-    showToast('Tema aplicado com sucesso!');
-}
-
-function resetarTema() {
-    document.getElementById('tema-cor-principal').value = '#0d6efd';
-    document.getElementById('tema-cor-secundaria').value = '#0a58ca';
-
-    document.documentElement.style.setProperty('--primary-blue', '#0d6efd');
-    document.documentElement.style.setProperty('--secondary-blue', '#0a58ca');
-
-    showToast('Tema resetado para as cores padrão!');
-}
-
 // Exportar funções globais para o HTML (Necessário para onclick)
 window.editarPromocao = editarPromocao;
 window.copiarLink = copiarLink;
@@ -1461,3 +1438,193 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // ... restante do seu código DOMContentLoaded ...
 });
+
+// =======================================================
+// NOVAS FUNÇÕES: GERENCIAMENTO DE ADMINISTRADORES
+// =======================================================
+
+/**
+ * Carrega a lista de administradores e popula a tabela de gerenciamento.
+ * NOTA: Esta API deve retornar TODOS os administradores (exceto o que está logado, talvez),
+ * mas o endpoint é 'api/admin/all'. Se não existir, use o que você tiver.
+ */
+async function carregarAdministradoresNaTabela() {
+    const tbody = document.getElementById('tabela-administradores');
+    if (!tbody) return; // Garante que só roda na página correta
+    
+    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Carregando usuários...</td></tr>`;
+
+    const token = getToken();
+    if (!token) {
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Não autorizado. Faça login novamente.</td></tr>`;
+        return;
+    }
+
+    try {
+        // ASSUME que a rota para listar todos os admins é /api/admin/all
+        const response = await fetch('/api/admin/all', { 
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` 
+            }
+        });
+
+        if (response.status === 401) {
+            // A sessão expirou ou não tem permissão
+            showToast('Sessão expirada. Faça login novamente.', 'error');
+            window.location.href = 'loginadm.html';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar a lista de administradores.');
+        }
+
+        const admins = await response.json();
+        
+        if (admins.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Nenhum outro administrador cadastrado.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        const adminLogadoId = document.getElementById('admin-id-hidden').value; // ID do admin logado
+
+        admins.forEach(admin => {
+            const isAdminLogado = admin._id === adminLogadoId;
+            
+            html += `
+                <tr>
+                    <td>${admin.nome || admin.username}</td>
+                    <td>${admin.email}</td>
+                    <td class="text-center">
+                        ${isAdminLogado ? 
+                            `<span class="badge bg-info">Você</span>` : 
+                            `
+                            <button class="btn btn-sm btn-outline-primary action-btn me-2" onclick="abrirEdicaoAdmin('${admin._id}')">
+                                <i class="bi bi-pencil"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger action-btn" onclick="excluirAdmin('${admin._id}', '${admin.nome || admin.username}')">
+                                <i class="bi bi-trash"></i> Excluir
+                            </button>
+                            `
+                        }
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+
+    } catch (error) {
+        console.error("Erro ao carregar administradores:", error);
+        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
+    }
+}
+
+/**
+ * Funções de Ação (Abre o formulário de Dados do Administrador com o usuário para edição)
+ * @param {string} id ID do administrador
+ */
+async function abrirEdicaoAdmin(id) {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        // ASSUME que a rota para obter um único admin é /api/admin/:id
+        const response = await fetch(`/api/admin/${id}`, { 
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+             const errorData = await response.json();
+             throw new Error(errorData.error || 'Falha ao carregar dados do usuário.');
+        }
+
+        const adminDataToEdit = await response.json();
+        
+        // 1. Preenche o formulário de "Dados do Administrador" com os dados do usuário
+        document.getElementById('admin-id-hidden').value = adminDataToEdit._id;
+        document.getElementById('admin-nome').value = adminDataToEdit.nome || adminDataToEdit.username;
+        document.getElementById('admin-email').value = adminDataToEdit.email;
+        
+        // 2. Limpa os campos de senha para forçar que a senha atual seja inserida na edição/atualização
+        document.getElementById('admin-senha-atual').value = '';
+        document.getElementById('admin-senha-nova').value = '';
+        document.getElementById('admin-senha-confirmar').value = '';
+        
+        // 3. Destaca o formulário para o usuário saber que está editando
+        const formTitle = document.querySelector('#configuracoes .col-md-6:first-child h4');
+        if (formTitle) formTitle.textContent = `Dados do Administrador: ${adminDataToEdit.nome || adminDataToEdit.username} (Em Edição)`;
+        
+        showToast(`Usuário ${adminDataToEdit.nome || adminDataToEdit.username} carregado para edição.`, 'info');
+
+    } catch (error) {
+        console.error("Erro ao carregar administrador para edição:", error);
+        showToast(`Erro ao carregar usuário: ${error.message}`, 'error');
+    }
+}
+
+/**
+ * Função para excluir um administrador
+ * @param {string} id ID do administrador
+ * @param {string} nome Nome do administrador
+ */
+async function excluirAdmin(id, nome) {
+    const adminLogadoId = document.getElementById('admin-id-hidden').value;
+
+    if (id === adminLogadoId) {
+        showToast('Você não pode excluir a sua própria conta de administrador.', 'warning');
+        return;
+    }
+    
+    // 1. Confirmação com SweetAlert2
+    const result = await Swal.fire({
+        title: 'Excluir Administrador?',
+        text: `Tem certeza que deseja remover o usuário ${nome}? Esta ação é irreversível.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33', 
+        cancelButtonColor: '#3085d6', 
+        confirmButtonText: 'Sim, Excluir!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    const token = getToken();
+    if (!token) {
+        showToast('Sessão expirada.', 'error');
+        window.location.href = 'loginadm.html';
+        return;
+    }
+
+    try {
+        // ASSUME que a rota para excluir um admin é DELETE /api/admin/:id
+        const response = await fetch(`/api/admin/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro ao excluir administrador.');
+        }
+
+        // Sucesso
+        await carregarAdministradoresNaTabela(); // Recarrega a lista
+        
+        Swal.fire('Excluído!', `O administrador ${nome} foi removido.`, 'success');
+
+    } catch (error) {
+        console.error('Erro ao excluir admin:', error);
+        showToast(`Falha ao excluir administrador: ${error.message}`, 'error');
+    }
+}
+
+// Exportar funções globais para o HTML (Necessário para onclick)
+window.abrirEdicaoAdmin = abrirEdicaoAdmin;
+window.excluirAdmin = excluirAdmin;
