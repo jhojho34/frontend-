@@ -1,6 +1,7 @@
 // Conteúdo do script.js
 // Dados das promoções (em um cenário real, viriam de um arquivo JSON)
 // let promocoes = JSON.parse(localStorage.getItem("promocoes")) || [];
+document.body.style.opacity = '0';
 let promocoes = [];
 
 // Função para calcular o desconto percentual
