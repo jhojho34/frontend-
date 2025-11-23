@@ -121,25 +121,73 @@ body {
     margin: 10px 0;
 }
 
+/* --- WHATSAPP (Cores originais) --- */
 .whatsapp-btn {
-    background-color: #25D366;
+    /* Verde Montanha Nevada (cor principal do app) */
+    background-color: #25D366; 
     color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .whatsapp-btn:hover {
+    /* Verde Surfista (usado para o efeito hover) */
     background-color: #128C7E;
     color: white;
+    transform: scale(1.03); /* Mantém o efeito de interação */
+}
+/* -------------------------------------- */
+
+/* --- INSTAGRAM (Estilo replicado) --- */
+.instagram-btn {
+    /* Define o gradiente de fundo usando as cores fornecidas:
+       Amarelo (FFD600) -> Laranja (FF7A00) -> Rosa (FF0069) -> Roxo (D300C5) -> Azul/Lilás (7638FA)
+       Ajustei a porcentagem para simular a transição vista no ícone. 
+    */
+    background: linear-gradient(
+        45deg, 
+        #FFD600, /* Amarelo (topo esquerdo) */
+        #FF7A00, /* Laranja */
+        #FF0069, /* Rosa */
+        #D300C5, /* Roxo */
+        #7638FA  /* Azul/Lilás (canto inferior direito) */
+    );
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
-.telegram-btn {
-    background-color: #0088cc;
+.instagram-btn:hover {
+    /* Mantém o gradiente, mas adiciona um leve transform para feedback visual */
+    background: linear-gradient(
+        45deg, 
+        #FFD600, 
+        #FF7A00, 
+        #FF0069, 
+        #D300C5, 
+        #7638FA
+    );
     color: white;
+    transform: scale(1.03); /* Aumenta ligeiramente o botão no hover */
+}
+/* -------------------------------------- */
+
+/* --- E-MAIL (Estilo replicado, usando o azul padrão como exemplo) --- */
+.email-btn {
+    /* Cor principal (Blueberry) */
+    background-color: #4285F4; 
+    color: white;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.telegram-btn:hover {
-    background-color: #006699;
+.email-btn:hover {
+    /* Cor mais escura no hover */
+    background-color: #1a73e8;
     color: white;
+    transform: scale(1.03); /* Mantém o efeito de interação */
 }
+/* -------------------------------------- */
 
 footer {
     background-color: var(--primary-blue);
@@ -369,4 +417,18 @@ footer {
     font-size: 1.25rem; 
     color: #333; 
     font-weight: 500;
+}
+
+/* --- ESTILOS PARA TOASTS CUSTOMIZADOS --- */
+.custom-toast {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    opacity: 0.95;
+    min-width: 250px;
+}
+
+/* Garante o fade out suave */
+.custom-toast.hide {
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
 }
