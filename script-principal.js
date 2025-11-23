@@ -1804,7 +1804,7 @@ async function carregarCuponsNaTabela() {
 
     // Colspan alterado para 5, incluindo a nova coluna "Validade"
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
-
+    
     const token = getToken();
     if (!token) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Sessão não autenticada.</td></tr>`;
@@ -1813,17 +1813,17 @@ async function carregarCuponsNaTabela() {
 
     try {
         // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
-        const response = await fetch('/api/cupons/painel', {
+        const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
+            const errorData = await response.json().catch(() => ({})); 
             throw new Error(errorData.error || 'Falha ao carregar cupons do painel.');
         }
 
-        cuponsPainel = await response.json();
+        cuponsPainel = await response.json(); 
 
         if (cuponsPainel.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
@@ -1831,33 +1831,26 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        const hoje = new Date();
+        const hoje = new Date(); 
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
-
+            
             // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-
+            
             // --- Lógica de Status de Vencimento ---
-
-            const hoje = new Date();
-
-            // 1. Definição da data de HOJE em UTC (ignorando o fuso horário local)
-            //    Usamos Date.UTC para criar uma data absoluta
-            const timeHojeUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-
-            // 2. Definição da data de VALIDADE em UTC
+            
+            // 1. Normaliza as datas para a meia-noite UTC (para cálculo preciso)
+            const timeAtualUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
             const timeValidadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
 
-            const expirado = timeValidadeUTC < timeHojeUTC;
-
-            // 3. Calcula a diferença em dias corridos
-            const diffTime = timeValidadeUTC - timeHojeUTC;
-
-            // 4. Calcula a diferença em dias (Usamos Math.round para estabilidade)
-            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
+            const expirado = timeValidadeUTC < timeAtualUTC; 
+            
+            // 2. Calcula a diferença em dias (usando Math.round para estabilidade)
+            const diffTime = timeValidadeUTC - timeAtualUTC;
+            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
+            
             let statusBadge;
 
             if (expirado) {
@@ -1869,10 +1862,11 @@ async function carregarCuponsNaTabela() {
                 // 1 a 7 dias
                 statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                // Mais de 7 dias (Contagem exata)
+                // 3. ATENDE AO REQUISITO: Mais de 7 dias (Ex: 8 dias)
                 statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
-
+            
+            // O valor final na célula é a data formatada + o status badge
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
 
             // --- Fim da Lógica de Status ---
