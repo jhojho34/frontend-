@@ -229,28 +229,6 @@ function limparFiltros(recarregar = true) {
     }
 }
 
-
-// NOVO: Função para aplicar o filtro ao clicar no card
-function aplicarFiltroRapido(categoriaSelecionada) {
-    // 1. Limpa outros filtros (texto, loja, preço) sem recarregar a página
-    limparFiltros(false); 
-
-    // 2. Define o valor da categoria no campo de filtro principal
-    const selectCategoria = document.getElementById('categoria');
-    if (selectCategoria) {
-        selectCategoria.value = categoriaSelecionada;
-    }
-
-    // 3. Executa a filtragem
-    filtrarPromocoes();
-    
-    // Opcional: Rola a página para a seção de resultados para dar feedback imediato
-    const container = document.getElementById('promocoes-container');
-    if (container) {
-        container.scrollIntoView({ behavior: 'smooth' });
-    }
-}
-
 // NOVO: Função para aplicar o filtro ao clicar no card
 function aplicarFiltroRapido(categoriaSelecionada) {
     // 1. Limpa outros filtros (texto, loja, preço) sem recarregar a página
