@@ -40,10 +40,14 @@ body {
 }
 
 .card-promo {
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    height: 100%;
+    /* Remove qualquer altura mínima fixa que possa estar forçando o espaço */
+    /* Se você tiver height ou min-height aqui, remova-os ou ajuste para auto */
+    height: auto; 
+    display: flex; /* Garante que o card é um container flex */
+    flex-direction: column; /* Coloca os itens em coluna */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Sombra mais suave */
+    overflow: hidden; /* Garante que nada transborde */
 }
 
 .card-promo:hover {
@@ -379,44 +383,91 @@ footer {
 }
 
 .card-promo .card-img-top {
-    /* Força a imagem a preencher a área de 250px */
-    width: 100%;
-    height: 100%;
-    
-    /* 🚨 CORREÇÃO: Usa 'contain' para mostrar a imagem INTEIRA (sem cortar)
-       Adiciona barras brancas/transparentes, se necessário, para preencher a área de 250px. */
-    object-fit: contain; /* <-- MUDANÇA AQUI! */
+    height: 180px; /* Altura fixa para a imagem para uniformidade */
+    object-fit: contain; /* Redimensiona a imagem para caber sem cortar, mantendo proporção */
+    padding: 10px; /* Um pequeno padding para a imagem não colar nas bordas */
+    background-color: #f8f9fa; /* Fundo claro para imagens com transparência */
 }
 
 /* Os outros blocos (card-body e card-title) permanecem como estão */
 .card-promo .card-body {
-    height: 100%;
-    display: flex; 
+    padding: 15px; /* Padding padrão ligeiramente reduzido */
+    flex-grow: 1; /* Permite que o body preencha o espaço restante, se houver */
+    display: flex;
     flex-direction: column;
 }
 
 .card-promo .card-title {
-    /* **REGRAS PARA LIMITAR A 2 LINHAS COM RETICÊNCIAS (...)** */
-    
-    /* 1. Esconde o conteúdo que ultrapassa o espaço */
-    overflow: hidden; 
-    
-    /* 2. Permite a quebra de linha de forma controlada */
+    font-size: 1rem; /* Reduz o tamanho da fonte do título */
+    margin-bottom: 8px; /* Margem menor abaixo do título */
+    line-height: 1.3; /* Espaçamento entre linhas mais compacto */
+    height: 2.6em; /* Altura fixa para 2 linhas de texto */
+    overflow: hidden;
+    text-overflow: ellipsis;
     display: -webkit-box;
-    
-    /* 3. Limita o texto a no máximo 2 linhas */
-    -webkit-line-clamp: 2; 
-    
-    /* 4. Orientação vertical para o corte */
+    -webkit-line-clamp: 2; /* Limita o título a duas linhas */
     -webkit-box-orient: vertical;
-    
-    /* 5. Garante que não haja espaço extra abaixo do título, mantendo o valor mais próximo */
-    margin-bottom: 0 !important; 
-    
-    /* Mantenha suas outras regras de estilo de fonte */
-    font-size: 1.25rem; 
-    color: #333; 
-    font-weight: 500;
+}
+
+.card-promo .description-text {
+    font-size: 0.8rem; /* Reduz o tamanho da fonte da descrição */
+    color: #6c757d; /* Cor mais suave */
+    margin-bottom: 10px; /* Margem para separar do cupom/preço */
+    line-height: 1.4;
+    height: 4.2em; /* Altura fixa para 3 linhas de texto */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limita a descrição a 3 linhas */
+    -webkit-box-orient: vertical;
+}
+
+.card-promo .coupon-badges {
+    margin-top: 5px; /* Espaço menor entre descrição e cupons */
+    margin-bottom: 10px; /* Espaço menor entre cupons e preços */
+    display: flex;
+    flex-wrap: wrap; /* Permite que os cupons quebrem linha */
+    gap: 5px; /* Espaçamento entre os badges */
+}
+
+.card-promo .btn-coupon {
+    font-size: 0.75rem; /* Menor tamanho para o botão do cupom */
+    padding: 3px 8px; /* Padding reduzido */
+    border-radius: 5px;
+    background-color: #e9ecef; /* Cor de fundo mais neutra */
+    color: #343a40; /* Cor do texto */
+    border: 1px solid #dee2e6;
+    white-space: nowrap; /* Impede que o texto do cupom quebre linha */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%; /* Garante que não transborde */
+}
+
+.card-promo .old-price {
+    font-size: 0.85rem; /* Preço antigo menor */
+    text-decoration: line-through;
+    color: #888;
+}
+
+.card-promo .new-price {
+    font-size: 1.2rem; /* Preço novo ligeiramente maior */
+    font-weight: bold;
+    color: #dc3545; /* Cor vermelha para destaque */
+}
+
+.card-promo .store-badge {
+    font-size: 0.75rem; /* Badge da loja menor */
+    padding: 2px 7px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+}
+
+/* Garante que o bloco final (preços + botão) fique sempre na parte inferior */
+.card-promo .card-body .mt-auto {
+    margin-top: auto !important; /* Sobrescreve o bootstrap */
+    padding-top: 10px; /* Pequeno padding para separar do conteúdo acima */
+    border-top: 1px solid #eee; /* Linha sutil para separar */
 }
 
 /* --- ESTILOS PARA TOASTS CUSTOMIZADOS --- */
