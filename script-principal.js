@@ -1812,7 +1812,7 @@ async function carregarCuponsNaTabela() {
     }
 
     try {
-        // Usamos a rota do painel para listar todos os cupons, incluindo os vencidos
+        // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
         const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -1836,19 +1836,18 @@ async function carregarCuponsNaTabela() {
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
             
-            // 🚨 CORREÇÃO DO FUSO HORÁRIO:
-            // Força a função toLocaleDateString a formatar a data usando o fuso horário UTC.
+            // 🚀 FIX: Fuso Horário - Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
             
-            // --- Lógica de Status de Vencimento Ajustada ---
+            // --- Lógica de Status de Vencimento ---
             
-            // Normaliza 'hoje' e 'dataValidade' para comparar apenas o dia
+            // Normaliza as datas para comparar apenas o dia (meia-noite)
             const dataAtualSemTempo = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
             const dataValidadeSemTempo = new Date(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
 
             const expirado = dataValidadeSemTempo < dataAtualSemTempo; 
             
-            // Calcula a diferença em dias corridos (arredondando para cima para pegar o dia inteiro)
+            // Calcula a diferença em dias corridos (Math.ceil é crucial para o dia inteiro)
             const diffTime = dataValidadeSemTempo.getTime() - dataAtualSemTempo.getTime();
             const diferencaDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
             
@@ -1857,11 +1856,14 @@ async function carregarCuponsNaTabela() {
             if (expirado) {
                 statusBadge = `<span class="badge bg-danger">Expirado</span>`;
             } else if (diferencaDias === 0) {
+                // Vence no final do dia de hoje
                 statusBadge = `<span class="badge bg-warning text-dark">Vence Hoje!</span>`;
             } else if (diferencaDias <= 7) {
+                // Contagem regressiva (1 a 7 dias)
                 statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                statusBadge = `<span class="badge bg-success">Ativo</span>`;
+                // Mais de 7 dias (Ex: o cupom de 01/12/2025 aparece como 8 dias aqui)
+                statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
             
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
