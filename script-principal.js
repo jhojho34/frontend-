@@ -253,63 +253,184 @@ document.addEventListener('DOMContentLoaded', function () {
 // Conteúdo do script-admin.js
 
 document.addEventListener('DOMContentLoaded', function () {
-    const loginForm = document.getElementById('login-form');
-    const loginError = document.getElementById('login-error');
-    const errorMessage = document.getElementById('error-message');
+    // Elementos da página
+    const stepEmail = document.getElementById('step-email');
+    const stepCode = document.getElementById('step-code');
+    const emailForm = document.getElementById('email-form');
+    const codeForm = document.getElementById('code-form');
+    const emailError = document.getElementById('email-error');
+    const codeError = document.getElementById('code-error');
+    const emailSuccess = document.getElementById('email-success');
+    const codeSuccess = document.getElementById('code-success');
+    const resendLink = document.getElementById('resend-link');
+    const countdownElement = document.getElementById('countdown');
+    const timerElement = document.getElementById('timer');
 
-    // 🚨 ESTE É O LISTENER QUE FAZ O BOTÃO 'ENTRAR' FUNCIONAR
-    if (loginForm) { 
-        loginForm.addEventListener('submit', function (e) {
+    // CÓDIGO FIXO E VARIÁVEIS DE CONTROLE
+    const codigoCorreto = "123456";
+    let countdownActive = false;
+    let countdownTime = 60;
+
+    // VARIÁVEIS QUE PRECISAM SER ACESSÍVEIS (Declaradas uma única vez!)
+    const emailInput = document.getElementById('email');
+    const codeInput = document.getElementById('code');
+
+    // Função para validar e-mail (MOVIDA PARA DENTRO DO ESCOPO PARA SER ACESSÍVEL)
+    function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+    
+    // Atualizar indicador de etapas
+    function updateStepIndicator(step) {
+        const steps = document.querySelectorAll('.step');
+        const stepLines = document.querySelectorAll('.step-line');
+
+        steps.forEach((s, index) => {
+            if (index < step) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+
+        stepLines.forEach((line, index) => {
+            if (index < step - 1) {
+                line.classList.add('active');
+            } else {
+                line.classList.remove('active');
+            }
+        });
+    }
+
+    // LÓGICA DE FORMATAÇÃO DE CÓDIGO
+    if (codeInput) {
+        codeInput.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
+            e.target.value = value;
+        });
+    }
+
+    // Validação do formulário de e-mail
+    if (emailForm) { 
+        emailForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
 
-            // Limpa o erro anterior
-            loginError.classList.add('d-none');
+            // ESTA VALIDAÇÃO AGORA FUNCIONA PORQUE isValidEmail ESTÁ NO ESCOPO
+            if (!isValidEmail(email)) {
+                showToast('Por favor, insira um e-mail válido.', 'error');
+                return;
+            }
 
-            // --- Lógica de Autenticação (Chama a API) ---
-            fetch('/api/admin/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ username, password })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.token) {
-                        // Login bem-sucedido: Salva o token JWT e redireciona
-                        localStorage.setItem('authToken', data.token);
-                        loginError.classList.add('d-none');
-                        window.location.href = 'painel.html';
+            // Simulação de verificação de e-mail no sistema
+            if (email === 'ferreirajho400@gmail.com') {
+                showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
 
-                    } else {
-                        // Login falhou: Exibe a mensagem de erro da API
-                        errorMessage.textContent = data.error || 'Usuário ou senha incorretos. Tente novamente.';
-                        loginError.classList.remove('d-none');
-                        loginError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        document.getElementById('password').value = '';
-                        document.getElementById('password').focus();
-                    }
-                })
-                .catch(error => {
-                    console.error("Erro de conexão:", error);
-                    errorMessage.textContent = 'Não foi possível conectar ao servidor. Verifique o backend.';
-                    loginError.classList.remove('d-none');
-                });
+                setTimeout(() => {
+                    stepEmail.classList.add('d-none');
+                    stepCode.classList.remove('d-none');
+                    updateStepIndicator(2);
+                    startCountdown();
+                }, 1500);
+
+            } else {
+                showToast('E-mail não encontrado em nossa base de dados.', 'error');
+            }
         });
+    }
 
-        // 2. Validação em tempo real para remover o alerta
-        const inputs = document.querySelectorAll('#username, #password');
-        inputs.forEach(input => {
-            input.addEventListener('input', function () {
-                if (!loginError.classList.contains('d-none')) {
-                    loginError.classList.add('d-none');
-                }
-            });
+    // Validação do formulário de código
+    if (codeForm) {
+        codeForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const code = document.getElementById('code').value;
+
+            if (code === codigoCorreto) {
+                showToast('Código verificado! Redirecionando para redefinição.', 'success');
+
+                setTimeout(() => {
+                    window.location.href = "redefinir-senha.html";
+                }, 2000);
+
+            } else {
+                showToast('Código incorreto. Tente novamente.', 'error');
+            }
         });
+    }
 
+    // Reenviar código
+    if (resendLink) {
+        resendLink.addEventListener('click', function (e) {
+            e.preventDefault();
+
+            if (countdownActive) return;
+
+            showToast('Novo código enviado! Verifique sua caixa de entrada.', 'success');
+            startCountdown();
+
+            setTimeout(() => {
+                showToast(codeSuccess);
+            }, 3000);
+        });
+    }
+
+    // Funções de Contagem (startCountdown, updateCountdown)
+
+    function startCountdown() {
+        countdownActive = true;
+        countdownTime = 60;
+        resendLink.style.pointerEvents = 'none';
+        resendLink.style.opacity = '0.5';
+        countdownElement.classList.remove('d-none');
+
+        updateCountdown();
+
+        const countdownInterval = setInterval(() => {
+            countdownTime--;
+            updateCountdown();
+
+            if (countdownTime <= 0) {
+                clearInterval(countdownInterval);
+                countdownActive = false;
+                resendLink.style.pointerEvents = 'auto';
+                resendLink.style.opacity = '1';
+                countdownElement.classList.add('d-none');
+            }
+        }, 1000);
+    }
+
+    function updateCountdown() {
+        timerElement.textContent = countdownTime;
+    }
+
+    // Validação em tempo real para remover alertas
+    if (emailInput) {
+        emailInput.addEventListener('input', function () {
+            if (!emailError.classList.contains('d-none')) {
+                showToast('E-mail encontrado. Código enviado para sua caixa de entrada.', 'success');
+            }
+            if (!emailSuccess.classList.contains('d-none')) {
+                showToast(emailSuccess);
+            }
+        });
+    }
+
+    if (codeInput) {
+        codeInput.addEventListener('input', function () {
+            if (!codeError.classList.contains('d-none')) {
+                showToast(codeError);
+            }
+            if (!codeSuccess.classList.contains('d-none')) {
+                showToast(codeSuccess);
+            }
+        });
     }
 });
 
