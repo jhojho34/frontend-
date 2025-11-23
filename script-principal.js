@@ -1399,27 +1399,52 @@ async function cadastrarNovoAdmin(event) {
 // Localização: function inicializarFormularios() { ... }
 
 const TRANSITION_DURATION = 400; // 400ms
-document.body.style.opacity = '0';
+
+// A DURAÇÃO e a linha document.body.style.opacity = '0'; (antes do DOMContentLoaded) 
+// permanecem iguais e são essenciais.
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. INÍCIO DO FADE-IN (PÁGINA CARREGADA)
-    // Ao carregar, o opacity: 0 definido acima é substituído por opacity: 1
     document.body.style.opacity = '1';
 
     // 2. MANIPULAÇÃO DE LINKS (FADE-OUT)
     
-    // Seleciona TODOS os links exceto:
-    // a) Links que abrem em nova aba (target="_blank")
-    // b) Links que são usados para navegação interna (data-section)
-    document.querySelectorAll('a:not([target="_blank"]):not([data-section])').forEach(link => {
+    // Filtro aprimorado: Seleciona todos os links
+    document.querySelectorAll('a').forEach(link => {
         link.addEventListener('click', (e) => {
             const novaURL = link.href;
-            
-            // FILTRO ADICIONAL: Ignora links que são apenas âncoras dentro da mesma página (ex: href="#topo")
-            if (link.hash && link.pathname === window.location.pathname) {
-                // É apenas uma âncora interna. Deixa o navegador lidar com isso.
+            const hostname = window.location.hostname;
+            const pathname = window.location.pathname;
+
+            // --- FILTROS DE EXCLUSÃO (Links que NÃO devem fazer transição) ---
+
+            // A) Exclui links sem um 'href' válido (links JS ou botões falsos)
+            if (!novaURL) {
+                return;
+            }
+
+            // B) Exclui links que abrem em nova aba
+            if (link.target === '_blank') {
+                return;
+            }
+
+            // C) Exclui links usados para navegação interna no painel (data-section)
+            if (link.hasAttribute('data-section')) {
+                return;
+            }
+
+            // D) Exclui links que são âncoras DENTRO da página atual (ex: #topo)
+            if (link.hash && link.pathname === pathname) {
                 return; 
             }
+            
+            // E) Exclui links que apontam para a página ATUAL
+            // Isso evita que o clique em um link para index.html (estando em index.html) cause transição
+            if (link.hostname === hostname && link.pathname === pathname && !link.hash) {
+                 return;
+            }
+
+            // --- SE PASSAR POR TODOS OS FILTROS, É UMA NAVEGAÇÃO REAL ---
 
             // Previne a navegação padrão do navegador
             e.preventDefault(); 
