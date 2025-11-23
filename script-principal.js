@@ -6,7 +6,7 @@ let cuponsPainel = [];
 let cuponsAtivosParaSelecao = [];
 
 // Variável global para armazenar cupons ativos no frontend (usada aqui)
-let cuponsAtivosMap = new Map(); 
+let cuponsAtivosMap = new Map();
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
@@ -103,7 +103,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...'; 
+    container.innerHTML = 'Carregando ofertas...';
 
     // --- PASSO 1: Busca e Processa Promoções e Cupons ---
     if (promocoesParaExibir === null) {
@@ -120,12 +120,12 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             const cuponsResponse = await fetch('/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
-                
+
                 // Cria o mapa: Map<cupomId, cupomObjeto>
                 // Isso permite acessar rapidamente os detalhes do cupom pelo ID.
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
-                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
             }
 
         } catch (error) {
@@ -135,7 +135,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         }
     }
 
-    container.innerHTML = ''; 
+    container.innerHTML = '';
 
     // LÓGICA DE CHECAGEM DE RESULTADOS
     if (promocoesParaExibir.length === 0) {
@@ -160,55 +160,59 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         // NOVO: Renderização dos Cupons Relacionados
         let cuponsHtml = '';
         if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
-            
+
             // Filtra e mapeia apenas os cupons que estão ativos e existem no mapa
             const cuponsAtivosRelacionados = promocao.cuponsRelacionados
-                .map(cupomId => cuponsAtivosMap.get(cupomId)) 
+                .map(cupomId => cuponsAtivosMap.get(cupomId))
                 .filter(cupom => cupom); // Remove IDs que não correspondem a cupons ativos
 
             if (cuponsAtivosRelacionados.length > 0) {
-                 cuponsHtml += '<div class="coupon-badges mt-2">';
-                 cuponsAtivosRelacionados.forEach(cupom => {
-                     // Cria o botão de cupom que chama a função copiarCupom()
-                     cuponsHtml += `
-                         <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
-                                 title="${cupom.descricao}"
-                                 onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
-                             <i class="bi bi-ticket"></i> ${cupom.codigo}
-                         </button>
-                     `;
-                 });
-                 cuponsHtml += '</div>';
+                cuponsHtml += '<div class="coupon-badges mt-2">';
+                cuponsAtivosRelacionados.forEach(cupom => {
+                    // Cria o botão de cupom que chama a função copiarCupom()
+                    cuponsHtml += `
+                     <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
+                             title="${cupom.descricao}"
+                             onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
+                         <i class="bi bi-ticket"></i> ${cupom.codigo}
+                     </button>
+                 `;
+                });
+                cuponsHtml += '</div>';
             }
         }
-        
+
         // ... (Criação do Card HTML)
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
         card.innerHTML = `
-            <div class="card card-promo">
-                <div class="position-relative">
-                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
-                    <span class="discount-badge">-${desconto}%</span>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">${promocao.titulo}</h5>
+        <div class="card card-promo">
+            <div class="position-relative">
+                <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
+                <span class="discount-badge">-${desconto}%</span>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${promocao.titulo}</h5>
+                
+                <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
 
-                    ${cuponsHtml} <div class="mt-auto">
-                        <div class="d-flex align-items-center mb-2 mt-2">
-                            <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
-                            <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="store-badge">${promocao.loja}</span>
-                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
-                                Ver Promoção
-                            </a>
-                        </div>
+                ${cuponsHtml} 
+                
+                <div class="mt-auto">
+                    <div class="d-flex align-items-center mb-2 mt-2">
+                        <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
+                        <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="store-badge">${promocao.loja}</span>
+                        <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
+                            Ver Promoção
+                        </a>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
         container.appendChild(card);
     });
@@ -894,7 +898,7 @@ async function editarPromocao(id) {
         showToast('Promoção não encontrada na lista atual.', 'error');
         return;
     }
-    
+
     // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
     await carregarCuponsParaSelecao(promocao._id);
 
@@ -926,7 +930,7 @@ async function editarPromocao(id) {
             });
         }
     }
-    
+
     // 4. Configurar o ID Oculto para o PUT (Edição)
     // Usamos o campo que já existe no HTML (<input type="hidden" id="produto-id-hidden">)
     document.getElementById('produto-id-hidden').value = id;
@@ -1806,11 +1810,11 @@ async function cadastrarCupom(event) {
     event.preventDefault();
 
     const idEdicao = document.getElementById('cupom-id-hidden').value;
-    
+
     // AQUI ESTÁ O AJUSTE PRINCIPAL: Se estiver em edição, anexa o ID à URL.
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
     const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons'; // <-- URL Corrigida
-    
+
     const token = getToken();
     if (!token) {
         showToast('Sessão expirada. Faça login novamente.', 'error');
@@ -1819,13 +1823,13 @@ async function cadastrarCupom(event) {
     }
 
     // Captura a string de data (Ex: '2025-12-01')
-    const validadeString = document.getElementById('cupom-validade').value; 
-    
+    const validadeString = document.getElementById('cupom-validade').value;
+
     // Cria um objeto Date puro.
     let validadeData = new Date(validadeString);
 
     // FIX FUSO HORÁRIO: Move o horário para o meio-dia (12h) UTC.
-    validadeData.setUTCHours(12, 0, 0, 0); 
+    validadeData.setUTCHours(12, 0, 0, 0);
 
     const dadosCupom = {
         codigo: document.getElementById('cupom-codigo').value,
@@ -1844,32 +1848,32 @@ async function cadastrarCupom(event) {
             },
             body: JSON.stringify(dadosCupom)
         });
-        
+
         // 🚨 NOVO TRATAMENTO DE ERRO APRIMORADO
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             let errorMessage = errorData.error || 'Erro desconhecido ao salvar o cupom.';
 
             if (response.status === 404) {
-                 errorMessage = 'O cupom não foi encontrado no servidor. A edição falhou.';
+                errorMessage = 'O cupom não foi encontrado no servidor. A edição falhou.';
             } else if (response.status === 400 && errorMessage.includes("ID inválido")) {
-                 // Este erro vem do backend (CastError) quando o ID é mal formado
-                 errorMessage = 'Erro no formato do ID do cupom. Recarregue a página.';
+                // Este erro vem do backend (CastError) quando o ID é mal formado
+                errorMessage = 'Erro no formato do ID do cupom. Recarregue a página.';
             } else if (response.status === 401) {
-                 errorMessage = 'Sessão expirada. Faça login novamente.';
-                 window.location.href = 'loginadm.html';
+                errorMessage = 'Sessão expirada. Faça login novamente.';
+                window.location.href = 'loginadm.html';
             }
-            
+
             throw new Error(errorMessage);
         }
         // 🚨 FIM DO NOVO TRATAMENTO DE ERRO APRIMORADO
 
         const acao = idEdicao ? 'atualizado' : 'cadastrado';
         limparFormularioCupom();
-        
+
         await carregarCuponsNaTabela();
         if (typeof carregarCuponsNoIndex === 'function') {
-            carregarCuponsNoIndex(); 
+            carregarCuponsNoIndex();
         }
 
         showToast(`Cupom ${acao} com sucesso!`);
@@ -1886,7 +1890,7 @@ async function carregarCuponsNaTabela() {
 
     // Colspan alterado para 5, incluindo a nova coluna "Validade"
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
-    
+
     const token = getToken();
     if (!token) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Sessão não autenticada.</td></tr>`;
@@ -1895,17 +1899,17 @@ async function carregarCuponsNaTabela() {
 
     try {
         // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
-        const response = await fetch('/api/cupons/painel', { 
+        const response = await fetch('/api/cupons/painel', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({})); 
+            const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || 'Falha ao carregar cupons do painel.');
         }
 
-        cuponsPainel = await response.json(); 
+        cuponsPainel = await response.json();
 
         if (cuponsPainel.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
@@ -1913,27 +1917,27 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        const hoje = new Date(); 
+        const hoje = new Date();
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
-            
+
             // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
-            
+
             // --- Lógica de Status de Vencimento ---
-            
+
             // 1. Normaliza as datas para a meia-noite UTC (para cálculo preciso)
             const timeAtualUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
             const timeValidadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
 
-            const expirado = timeValidadeUTC < timeAtualUTC; 
-            
+            const expirado = timeValidadeUTC < timeAtualUTC;
+
             // 2. Calcula a diferença em dias (a subtração de dois valores UTC é exata)
             // Usa Math.round() que é mais estável para essa diferença de dias inteiros.
             const diffTime = timeValidadeUTC - timeAtualUTC;
-            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
-            
+            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
             let statusBadge;
 
             if (expirado) {
@@ -1948,7 +1952,7 @@ async function carregarCuponsNaTabela() {
                 // Mais de 7 dias (Contagem exata exibida)
                 statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
-            
+
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
 
             // --- Fim da Lógica de Status ---
@@ -2061,16 +2065,16 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('/api/cupons'); 
+        const response = await fetch('/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
         }
 
         cuponsAtivosParaSelecao = await response.json();
-        
+
         let htmlOptions = '';
-        
+
         if (cuponsAtivosParaSelecao.length === 0) {
             htmlOptions = '<option value="" disabled>Nenhum cupom ativo encontrado</option>';
             selectElement.innerHTML = htmlOptions;
@@ -2083,7 +2087,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         });
 
         selectElement.innerHTML = htmlOptions;
-        
+
         // Se estivermos em modo de edição, vamos selecionar os cupons existentes
         if (promocaoId) {
             // A lógica de seleção será feita em editarPromocao()
