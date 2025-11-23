@@ -92,7 +92,7 @@ function formatarPreco(preco) {
 }
 
 // Função para carregar as promoções
-async function carregarPromocoes(promocoesParaExibir = null) {
+async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
     const container = document.getElementById('promocoes-container');
 
     if (!container) {
@@ -103,8 +103,8 @@ async function carregarPromocoes(promocoesParaExibir = null) {
 
     container.innerHTML = 'Carregando ofertas...'; // Feedback de carregamento
 
-    // Se o array de exibição não foi fornecido (ou está vazio), busca na API
-    if (promocoesParaExibir === null || promocoesParaExibir.length === 0) {
+    // Se promocoesParaExibir for null (chamada inicial), busca na API
+    if (promocoesParaExibir === null) {
         try {
             // Rota pública para carregar produtos
             const response = await fetch('/api/promocoes');
@@ -126,8 +126,21 @@ async function carregarPromocoes(promocoesParaExibir = null) {
 
     container.innerHTML = ''; // Limpa o container antes de renderizar
 
+    // LÓGICA DE CHECAGEM DE RESULTADOS: Usa 'isFiltered' para exibir a mensagem correta.
     if (promocoesParaExibir.length === 0) {
-        container.innerHTML = '<p class="text-center text-muted">Nenhuma promoção encontrada no momento.</p>';
+        if (isFiltered) {
+            // Mensagem para quando o filtro não encontra nada (solicitação do usuário)
+            container.innerHTML = `
+                <div class="col-12 text-center my-5">
+                    <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-3">Não encontramos nenhuma promoção com os filtros aplicados.</p>
+                    <button class="btn btn-outline-secondary mt-2" onclick="limparFiltros()">Limpar Filtros</button>
+                </div>
+            `;
+        } else {
+            // Mensagem padrão (se não houver promoções no BD na carga inicial)
+            container.innerHTML = '<p class="text-center text-muted">Nenhuma promoção encontrada no momento.</p>';
+        }
         return;
     }
 
@@ -181,7 +194,7 @@ function filtrarPromocoes() {
         return atendeCategoria && atendeLoja && atendePreco;
     });
 
-    carregarPromocoes(promocoesFiltradas);
+    carregarPromocoes(promocoesFiltradas, true);
 }
 
 // Função para limpar filtros
@@ -1017,7 +1030,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const errorMessage = document.getElementById('error-message');
 
     // 🚨 ESTE É O LISTENER QUE FAZ O BOTÃO 'ENTRAR' FUNCIONAR
-    if (loginForm) { 
+    if (loginForm) {
         loginForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -1084,7 +1097,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (resetForm) { 
+    if (resetForm) {
         // 1. DECLARAÇÃO DE VARIÁVEIS DE CAMPO (TOPO DO IF)
         const novaSenhaInput = document.getElementById('nova-senha');
         const confirmarSenhaInput = document.getElementById('confirmar-senha');
@@ -1117,7 +1130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 existingIndicator.remove();
             }
             // ... (restante da lógica de validatePasswordStrength) ...
-            
+
             if (!password) return;
             let strengthText = '';
             let strengthClass = '';
@@ -1155,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitButton.disabled = false;
                 resetForm.reset();
                 showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
-                
+
                 const strengthIndicator = document.getElementById('password-strength-indicator');
                 if (strengthIndicator) {
                     strengthIndicator.remove();
@@ -1192,12 +1205,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Validação em tempo real da força da senha
         novaSenhaInput.addEventListener('input', function () {
             validatePasswordStrength(this.value); // AGORA ACESSÍVEL
-            clearError(); 
+            clearError();
         });
 
         // Validação em tempo real da confirmação de senha
         confirmarSenhaInput.addEventListener('input', function () {
-            clearError(); 
+            clearError();
         });
 
         // Validação do formulário principal
