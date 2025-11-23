@@ -512,3 +512,20 @@ body {
 .page-transition-out {
     opacity: 0 !important;
 }
+
+/* --- Estilo para o Badge "Nenhum Cupom" (Não Clicável) --- */
+.btn-coupon-disabled {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 5px;
+    background-color: #e9ecef; /* Cor de fundo igual ao btn-coupon */
+    color: #6c757d; /* Cor de texto mais suave para indicar desativado */
+    border: 1px solid #dee2e6; /* Borda igual ao btn-coupon */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    cursor: default; /* Remove o cursor de "mãozinha" */
+    pointer-events: none; /* Garante que não seja clicável */
+    opacity: 0.8; /* Levemente opaco para diferenciar, opcional */
+}

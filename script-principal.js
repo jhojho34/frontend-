@@ -703,10 +703,10 @@ async function cadastrarPromocao() {
     const loja = document.getElementById('produto-loja').value;
     const imagem = document.getElementById('produto-imagem').value || 'https://via.placeholder.com/300x200/6c757d/ffffff?text=Produto+Sem+Imagem';
     const link = document.getElementById('produto-link').value;
-    
+
     // 🎯 AJUSTE CRÍTICO AQUI: Captura o valor único do SELECT
     const cupomSelecionadoId = document.getElementById('cupons-relacionados').value;
-    
+
     // Converte o valor único em um Array:
     // Se o ID for válido e não vazio, cria um array com esse ID. Se for vazio (''), cria um array vazio [].
     const cuponsRelacionados = cupomSelecionadoId ? [cupomSelecionadoId] : [];
@@ -729,7 +729,7 @@ async function cadastrarPromocao() {
         imagem,
         link,
         // Envia o Array corretamente formatado
-        cuponsRelacionados: cuponsRelacionados 
+        cuponsRelacionados: cuponsRelacionados
     };
 
     try {
@@ -750,7 +750,7 @@ async function cadastrarPromocao() {
 
         // NOVO: Tratamento de erro 404 para edição
         if (metodoHttp === 'PUT' && response.status === 404) {
-             throw new Error('A promoção não foi encontrada no servidor. A edição falhou.');
+            throw new Error('A promoção não foi encontrada no servidor. A edição falhou.');
         }
 
         if (!response.ok) {
@@ -788,7 +788,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...'; 
+    container.innerHTML = 'Carregando ofertas...';
 
     // --- PASSO 1: Busca e Processa Promoções e Cupons ---
     if (promocoesParaExibir === null) {
@@ -805,10 +805,10 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             const cuponsResponse = await fetch('/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
-                
+
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
-                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
             }
 
         } catch (error) {
@@ -818,7 +818,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         }
     }
 
-    container.innerHTML = ''; 
+    container.innerHTML = '';
 
     // LÓGICA DE CHECAGEM DE RESULTADOS
     if (promocoesParaExibir.length === 0) {
@@ -843,35 +843,36 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         // Renderização dos Cupons Relacionados
         let cuponsHtml = '';
         const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
-        
+
         const cuponsAtivosRelacionados = cuponsRelacionadosIds
-            .map(cupomId => cuponsAtivosMap.get(cupomId)) 
+            .map(cupomId => cuponsAtivosMap.get(cupomId))
             .filter(cupom => cupom); // Apenas cupons válidos e ativos
 
         if (cuponsAtivosRelacionados.length > 0) {
-             // Se houver cupons ativos, renderiza os botões
-             cuponsHtml += '<div class="coupon-badges mt-2">';
-             cuponsAtivosRelacionados.forEach(cupom => {
-                 cuponsHtml += `
+            // Se houver cupons ativos, renderiza os botões clicáveis
+            cuponsHtml += '<div class="coupon-badges mt-2">';
+            cuponsAtivosRelacionados.forEach(cupom => {
+                cuponsHtml += `
                      <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
                              title="${cupom.descricao}"
                              onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
                          <i class="bi bi-ticket"></i> ${cupom.codigo}
                      </button>
                  `;
-             });
-             cuponsHtml += '</div>';
+            });
+            cuponsHtml += '</div>';
         } else {
-             // 🎯 NOVO: Renderiza o badge de "Nenhum Cupom"
-             cuponsHtml = `
+            // 🎯 CORREÇÃO: Renderiza o badge "Nenhum Cupom" com a classe de desabilitado
+            cuponsHtml = `
                 <div class="coupon-badges mt-2">
-                    <span class="badge bg-light text-muted" style="font-size: 0.75rem; padding: 5px 10px;">
+                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
+                          title="Nenhum cupom disponível para este produto">
                         <i class="bi bi-ticket-slash"></i> Nenhum Cupom
                     </span>
                 </div>
              `;
         }
-        
+
         // Criação do Card HTML
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
@@ -948,7 +949,7 @@ async function editarPromocao(id) {
 
     // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
     await carregarCuponsParaSelecao(promocao._id);
-    
+
     // 2. Configurar o ID Oculto para o PUT (Edição)
     document.getElementById('produto-id-hidden').value = id;
 
@@ -966,13 +967,13 @@ async function editarPromocao(id) {
     const cuponsSelect = document.getElementById('cupons-relacionados');
     if (cuponsSelect) {
         // Deseleciona o valor atual (caso haja)
-        cuponsSelect.value = ""; 
+        cuponsSelect.value = "";
 
         // Se houver cupons relacionados salvos, seleciona o primeiro (e único)
         if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
             const primeiroCupomId = promocao.cuponsRelacionados[0];
             // Define o valor do select (que é o ID do cupom)
-            cuponsSelect.value = primeiroCupomId; 
+            cuponsSelect.value = primeiroCupomId;
         }
     }
 
@@ -2106,7 +2107,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('/api/cupons'); 
+        const response = await fetch('/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
@@ -2116,10 +2117,10 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         cuponsAtivosParaSelecao = cuponsAtivos; // Atualiza a variável global
 
         let htmlOptions = '';
-        
+
         // 🎯 AJUSTE CRÍTICO: Adiciona a opção "Nenhum Cupom" com valor vazio
         htmlOptions += '<option value="">--- NENHUM CUPOM ---</option>';
-        
+
         if (cuponsAtivos.length === 0) {
             htmlOptions = '<option value="" selected>Nenhum cupom ativo encontrado</option>';
             selectElement.innerHTML = htmlOptions;
@@ -2132,7 +2133,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         });
 
         selectElement.innerHTML = htmlOptions;
-        
+
         // Se estivermos em modo de edição, a função editarPromocao() fará a seleção.
 
     } catch (error) {
