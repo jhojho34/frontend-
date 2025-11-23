@@ -1802,7 +1802,7 @@ async function carregarCuponsNaTabela() {
     const tbody = document.getElementById('tabela-cupons');
     if (!tbody) return;
 
-    // Colspan alterado para 5, incluindo a nova coluna "Validade"
+    // Colspan alterado para 5
     tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
     
     const token = getToken();
@@ -1812,7 +1812,6 @@ async function carregarCuponsNaTabela() {
     }
 
     try {
-        // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
         const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -1831,24 +1830,28 @@ async function carregarCuponsNaTabela() {
         }
 
         let html = '';
-        const hoje = new Date(); 
+        
+        // 1. Normaliza HOJE para UTC puro (meia-noite) para ser o ponto de partida
+        const hoje = new Date();
+        const hojeUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()); 
 
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
             
-            // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
+            // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
             
             // --- Lógica de Status de Vencimento ---
             
-            // 1. Normaliza as datas para a meia-noite UTC (para cálculo preciso)
-            const timeAtualUTC = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-            const timeValidadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
-
-            const expirado = timeValidadeUTC < timeAtualUTC; 
+            // 2. Normaliza VALIDADE para UTC puro (meia-noite)
+            const validadeUTC = Date.UTC(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
             
-            // 2. Calcula a diferença em dias (usando Math.round para estabilidade)
-            const diffTime = timeValidadeUTC - timeAtualUTC;
+            const expirado = validadeUTC < hojeUTC; 
+            
+            // 3. Calcula a diferença em dias (a subtração de dois valores UTC é exata)
+            const diffTime = validadeUTC - hojeUTC;
+            
+            // 4. FIX: Math.round() é usado no cálculo exato. O resultado para 01/12 será 8.
             const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
             
             let statusBadge;
@@ -1862,11 +1865,10 @@ async function carregarCuponsNaTabela() {
                 // 1 a 7 dias
                 statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                // 3. ATENDE AO REQUISITO: Mais de 7 dias (Ex: 8 dias)
+                // Mais de 7 dias (Contagem exata exibida)
                 statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
             
-            // O valor final na célula é a data formatada + o status badge
             const validadeCellContent = `${dataFormatada} ${statusBadge}`;
 
             // --- Fim da Lógica de Status ---
