@@ -1767,6 +1767,7 @@ async function cadastrarCupom(event) {
         descricao: document.getElementById('cupom-descricao').value,
         loja: document.getElementById('cupom-loja').value,
         link: document.getElementById('cupom-link').value,
+        validade: document.getElementById('cupom-validade').value,
     };
 
     try {
@@ -1801,35 +1802,68 @@ async function carregarCuponsNaTabela() {
     const tbody = document.getElementById('tabela-cupons');
     if (!tbody) return;
 
-    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Carregando cupons...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando cupons...</td></tr>`;
     
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Sessão não autenticada.</td></tr>`;
+        return;
+    }
 
     try {
-        const response = await fetch('/api/cupons', {
+        // Rota protegida do painel que retorna todos os cupons (ativos e vencidos)
+        const response = await fetch('/api/cupons/painel', { 
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (!response.ok) {
-            throw new Error('Falha ao carregar cupons do painel.');
+            const errorData = await response.json().catch(() => ({})); // Tenta ler o JSON do erro
+            throw new Error(errorData.error || 'Falha ao carregar cupons do painel.');
         }
 
-        cuponsPainel = await response.json(); // Salva na variável global
+        cuponsPainel = await response.json(); // Salva na variável global (assumindo que 'cuponsPainel' é global)
 
         if (cuponsPainel.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
             return;
         }
 
         let html = '';
+        const hoje = new Date(); // Data e hora atuais para comparação
+
         cuponsPainel.forEach(cupom => {
+            const dataValidade = new Date(cupom.validade);
+            const dataFormatada = dataValidade.toLocaleDateString('pt-BR');
+            const expirado = dataValidade < hoje;
+            
+            // Lógica para determinar o status e badge
+            let statusBadge;
+            let diferencaDias = 0;
+
+            if (expirado) {
+                statusBadge = `<span class="badge bg-danger">Expirado</span>`;
+            } else {
+                // Calcula a diferença em dias (arredondando para baixo)
+                diferencaDias = Math.floor((dataValidade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+                
+                if (diferencaDias <= 7) {
+                    statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
+                } else {
+                    statusBadge = `<span class="badge bg-success">Ativo</span>`;
+                }
+            }
+            
+            // O conteúdo da célula de Validade será a data + o badge de status
+            const validadeCellContent = `${dataFormatada} ${statusBadge}`;
+
+
             html += `
                 <tr>
                     <td><span class="badge bg-secondary">${cupom.codigo}</span></td>
                     <td>${cupom.descricao}</td>
                     <td>${cupom.loja}</td>
+                    <td>${validadeCellContent}</td> 
                     <td>
                         <button class="btn btn-sm btn-outline-primary action-btn me-2" onclick="editarCupom('${cupom._id}')">
                             <i class="bi bi-pencil"></i>
@@ -1845,7 +1879,7 @@ async function carregarCuponsNaTabela() {
 
     } catch (error) {
         console.error("Erro ao carregar cupons:", error);
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
     }
 }
 
@@ -1861,6 +1895,10 @@ function editarCupom(id) {
     document.getElementById('cupom-descricao').value = cupom.descricao;
     document.getElementById('cupom-loja').value = cupom.loja;
     document.getElementById('cupom-link').value = cupom.link;
+    
+    // NOVO: Preenche o campo de data (formatado como YYYY-MM-DD para input[type="date"])
+    const dataISO = new Date(cupom.validade).toISOString().split('T')[0];
+    document.getElementById('cupom-validade').value = dataISO;
 
     showToast('Cupom carregado para edição.');
 }
@@ -1903,3 +1941,10 @@ async function excluirCupom(id, codigo) {
 window.editarCupom = editarCupom;
 window.excluirCupom = excluirCupom;
 window.copiarCupom = copiarCupom;
+
+function limparFormularioCupom() {
+    document.getElementById('form-cadastro-cupom').reset();
+    document.getElementById('cupom-id-hidden').value = '';
+    // NOVO: Limpa o campo de validade
+    document.getElementById('cupom-validade').value = '';
+}
