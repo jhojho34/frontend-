@@ -3,6 +3,7 @@
 // let promocoes = JSON.parse(localStorage.getItem("promocoes")) || [];
 let promocoes = [];
 let cuponsPainel = [];
+let cuponsAtivosParaSelecao = [];
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
@@ -633,7 +634,8 @@ function inicializarPainel() {
     carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
     carregarAdministradoresNaTabela();
-    carregarCuponsNaTabela()
+    carregarCuponsNaTabela();
+    carregarCuponsParaSelecao();
 }
 
 
@@ -663,6 +665,8 @@ async function cadastrarPromocao() {
     const loja = document.getElementById('produto-loja').value;
     const imagem = document.getElementById('produto-imagem').value || 'https://via.placeholder.com/300x200/6c757d/ffffff?text=Produto+Sem+Imagem';
     const link = document.getElementById('produto-link').value;
+    const cuponsSelect = document.getElementById('cupons-relacionados');
+    const cuponsRelacionados = Array.from(cuponsSelect.selectedOptions).map(option => option.value);
 
     const token = getToken();
     if (!token) {
@@ -680,6 +684,7 @@ async function cadastrarPromocao() {
         loja,
         imagem,
         link,
+        cuponsRelacionados: cuponsRelacionados
     };
 
     try {
@@ -852,35 +857,50 @@ async function editarPromocao(id) {
     const promocao = promocoesPainel.find(p => p._id === id); // Busca na lista já carregada da API
 
     if (!promocao) {
-        showToast('Promoção não encontrada na lista atual.');
+        showToast('Promoção não encontrada na lista atual.', 'error');
         return;
     }
+    
+    // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
+    await carregarCuponsParaSelecao(promocao._id);
 
-    // Preencher formulário com dados da promoção
-    document.getElementById('produto-nome').value = promocao.titulo; // Usar 'titulo' do Model
+    // 2. Preencher formulário com dados da promoção
+    document.getElementById('produto-nome').value = promocao.titulo;
     document.getElementById('produto-categoria').value = promocao.categoria;
     document.getElementById('produto-descricao').value = promocao.descricao || '';
     document.getElementById('produto-preco-antigo').value = promocao.precoAntigo;
-    document.getElementById('produto-preco-atual').value = promocao.precoNovo; // Usar 'precoNovo'
+    document.getElementById('produto-preco-atual').value = promocao.precoNovo;
     document.getElementById('produto-loja').value = promocao.loja;
     document.getElementById('produto-imagem').value = promocao.imagem || '';
     document.getElementById('produto-link').value = promocao.link;
 
-    // *** MUITO IMPORTANTE PARA EDIÇÃO ***
-    // Adicionar um campo oculto para guardar o ID da promoção que está sendo editada
-    let idHidden = document.getElementById('produto-id-hidden');
-    if (!idHidden) {
-        idHidden = document.createElement('input');
-        idHidden.type = 'hidden';
-        idHidden.id = 'produto-id-hidden';
-        document.getElementById('form-cadastro-promocao').appendChild(idHidden);
-    }
-    idHidden.value = id;
+    // 3. 🎯 Lógica para Selecionar os Cupons Relacionados
+    const cuponsSelect = document.getElementById('cupons-relacionados');
+    if (cuponsSelect) {
+        // Deseleciona todas as opções antes de começar
+        Array.from(cuponsSelect.options).forEach(option => {
+            option.selected = false;
+        });
 
-    // Navegar para a aba de cadastro
+        // Seleciona os cupons que estão salvos na promoção
+        if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
+            promocao.cuponsRelacionados.forEach(cupomId => {
+                const option = cuponsSelect.querySelector(`option[value="${cupomId}"]`);
+                if (option) {
+                    option.selected = true;
+                }
+            });
+        }
+    }
+    
+    // 4. Configurar o ID Oculto para o PUT (Edição)
+    // Usamos o campo que já existe no HTML (<input type="hidden" id="produto-id-hidden">)
+    document.getElementById('produto-id-hidden').value = id;
+
+    // 5. Navegar para a aba de cadastro
     document.querySelector('[data-section="cadastrar-promocao"]').click();
 
-    showToast('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".');
+    showToast('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".', 'info');
 }
 
 function copiarLink(link) { // <-- AGORA RECEBE O LINK, NÃO O ID
@@ -1999,4 +2019,44 @@ function limparFormularioCupom() {
     document.getElementById('cupom-id-hidden').value = '';
     // NOVO: Limpa o campo de validade
     document.getElementById('cupom-validade').value = '';
+}
+
+async function carregarCuponsParaSelecao(promocaoId = null) {
+    const selectElement = document.getElementById('cupons-relacionados');
+    if (!selectElement) return;
+
+    // A rota /api/cupons retorna apenas cupons ativos (não expirados)
+    try {
+        const response = await fetch('/api/cupons'); 
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar cupons ativos.');
+        }
+
+        cuponsAtivosParaSelecao = await response.json();
+        
+        let htmlOptions = '';
+        
+        if (cuponsAtivosParaSelecao.length === 0) {
+            htmlOptions = '<option value="" disabled>Nenhum cupom ativo encontrado</option>';
+            selectElement.innerHTML = htmlOptions;
+            return;
+        }
+
+        cuponsAtivosParaSelecao.forEach(cupom => {
+            // Valor: cupom._id. Texto: Código do Cupom (Loja) - Descrição
+            htmlOptions += `<option value="${cupom._id}">${cupom.codigo} (${cupom.loja}) - ${cupom.descricao}</option>`;
+        });
+
+        selectElement.innerHTML = htmlOptions;
+        
+        // Se estivermos em modo de edição, vamos selecionar os cupons existentes
+        if (promocaoId) {
+            // A lógica de seleção será feita em editarPromocao()
+        }
+
+    } catch (error) {
+        console.error("Erro ao carregar cupons para seleção:", error);
+        selectElement.innerHTML = '<option value="" disabled>Erro ao carregar cupons</option>';
+    }
 }
