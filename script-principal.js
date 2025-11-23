@@ -194,16 +194,15 @@ function limparFiltros() {
 }
 
 // Event Listeners (script.js)
-// Event Listeners (script.js)
 document.addEventListener('DOMContentLoaded', function () {
 
     // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (index.html)
     const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (promocoesContainer) {
-
+    if (promocoesContainer) { 
+        
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
-        carregarPromocoes();
+        carregarPromocoes(); 
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -217,30 +216,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // C. Adicionar animação suave ao rolar para as seções (Âncoras)
-        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+        // const anchorLinks = document.querySelectorAll('a[href^="#"]');
 
-        // Utilizamos for...of para garantir uma iteração segura e explícita
-        Array.from(anchorLinks).forEach(anchor => {
-
-            // 🚨 SOLUÇÃO FINAL (aplica a verificação dentro do loop, se necessário)
-            if (!anchor || typeof anchor.addEventListener !== 'function') {
-                return; // Retorna para a próxima iteração se for inválido
-            }
-
-            // Linha 296 corrigida:
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+        // Utilizamos o for...of para iteração robusta
+        // for (const anchor of anchorLinks) {
+            
+            // 🚨 SOLUÇÃO DE FORÇA BRUTA: Se, por algum motivo, o elemento for null, ignoramos.
+        //    if (!anchor || typeof anchor.addEventListener !== 'function') {
+        //        continue; 
+        //    }
+            
+            // A Linha 296 deve cair aqui agora:
+        //    anchor.addEventListener('click', function (e) {
+        //        e.preventDefault();
+                
+                // Note que o `this` é sempre o `anchor` aqui. 
+        //        const target = document.querySelector(this.getAttribute('href'));
 
                 // Garante que o alvo existe antes de tentar a rolagem
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
-        });
+        //        if (target) {
+        //            target.scrollIntoView({
+        //                behavior: 'smooth',
+        //                block: 'start'
+        //            });
+        //        }
+        //    });
+        // }
     }
 
     // NOTA: A inicialização do Painel do Administrador (inicializarPainel) 
