@@ -250,8 +250,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Conteúdo do script-senha.js
-// Conteúdo do script-admin.js
-
 document.addEventListener('DOMContentLoaded', function () {
     // Elementos da página
     const stepEmail = document.getElementById('step-email');
@@ -1196,7 +1194,70 @@ window.copiarLink = copiarLink;
 window.excluirPromocao = excluirPromocao;
 
 // Conteúdo do script-admin.js
+document.addEventListener('DOMContentLoaded', function () {
+    const loginForm = document.getElementById('login-form');
+    const loginError = document.getElementById('login-error');
+    const errorMessage = document.getElementById('error-message');
 
+    // 🚨 ESTE É O LISTENER QUE FAZ O BOTÃO 'ENTRAR' FUNCIONAR
+    if (loginForm) { 
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Limpa o erro anterior
+            loginError.classList.add('d-none');
+
+            // --- Lógica de Autenticação (Chama a API) ---
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.token) {
+                        // Login bem-sucedido: Salva o token JWT e redireciona
+                        localStorage.setItem('authToken', data.token);
+                        loginError.classList.add('d-none');
+                        window.location.href = 'painel.html';
+
+                    } else {
+                        // Login falhou: Exibe a mensagem de erro da API
+                        errorMessage.textContent = data.error || 'Usuário ou senha incorretos. Tente novamente.';
+                        loginError.classList.remove('d-none');
+                        loginError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        document.getElementById('password').value = '';
+                        document.getElementById('password').focus();
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro de conexão:", error);
+                    errorMessage.textContent = 'Não foi possível conectar ao servidor. Verifique o backend.';
+                    loginError.classList.remove('d-none');
+                });
+        });
+
+        // 2. Validação em tempo real para remover o alerta
+        const inputs = document.querySelectorAll('#username, #password');
+        inputs.forEach(input => {
+            input.addEventListener('input', function () {
+                if (!loginError.classList.contains('d-none')) {
+                    loginError.classList.add('d-none');
+                }
+            });
+        });
+
+    }
+});
+
+// SCRIPT DE REDEFINIR SENHA:
+
+// SCRIPT DE REDEFINIR SENHA:
 
 document.addEventListener('DOMContentLoaded', function () {
     const contactForm = document.getElementById('contact-form');
@@ -1218,13 +1279,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Verificar se todos os campos estão preenchidos
             if (!nome || !email || !assunto || !mensagem) {
-                showToast('Por favor, preencha todos os campos obrigatórios.', 'error'); // Corrigido
+                showToast('Por favor, preencha todos os campos obrigatórios.', 'error');
                 return;
             }
 
-            // Validar e-mail
-            if (!isValidEmail(email)) { // Assumindo que isValidEmail está no escopo global/anterior
-                showToast('Por favor, insira um e-mail válido.', 'error'); // Corrigido
+            // Validar e-mail (Assumindo que isValidEmail está no escopo global ou em um bloco anterior)
+            if (!isValidEmail(email)) {
+                showToast('Por favor, insira um e-mail válido.', 'error');
                 return;
             }
 
@@ -1277,194 +1338,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     });
-});
-
-// SCRIPT DE REDEFINIR SENHA:
-
-// SCRIPT DE REDEFINIR SENHA:
-
-document.addEventListener('DOMContentLoaded', function () {
-    const resetForm = document.getElementById('reset-form');
-    const resetError = document.getElementById('reset-error');
-    const resetSuccess = document.getElementById('reset-success');
-    const submitButton = document.getElementById('submit-button');
-    const buttonText = document.getElementById('button-text');
-    const buttonSpinner = document.getElementById('button-spinner');
-
-    if (resetForm) { // 🚨 AGORA, TODO O CÓDIGO SÓ RODA SE O FORMULÁRIO EXISTIR
-
-        // Variáveis de campo declaradas DENTRO do escopo condicional
-        const novaSenhaInput = document.getElementById('nova-senha');
-        const confirmarSenhaInput = document.getElementById('confirmar-senha');
-        const toggleButtons = document.querySelectorAll('.toggle-password');
-
-
-        // Funções Auxiliares (movidas para dentro do escopo ou re-declaradas aqui)
-
-        function isPasswordStrong(password) {
-            // Pelo menos 6 caracteres, incluindo letras e números
-            const minLength = password.length >= 6;
-            const hasLetters = /[a-zA-Z]/.test(password);
-            const hasNumbers = /[0-9]/.test(password);
-            return minLength && hasLetters && hasNumbers;
-        }
-
-        function clearError() {
-            resetError.classList.add('d-none');
-        }
-
-        function showError(message) {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.textContent = message;
-            resetError.classList.remove('d-none');
-
-            // Rolagem suave para o alerta
-            resetError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        function validatePasswordStrength(password) {
-            // Remover indicadores anteriores se existirem
-            const existingIndicator = document.getElementById('password-strength-indicator');
-            if (existingIndicator) {
-                existingIndicator.remove();
-            }
-
-            if (!password) return;
-
-            let strengthText = '';
-            let strengthClass = '';
-
-            if (password.length < 6) {
-                strengthText = 'Senha muito curta';
-                strengthClass = 'strength-weak';
-            } else if (!isPasswordStrong(password)) {
-                strengthText = 'Senha fraca - use letras e números';
-                strengthClass = 'strength-weak';
-            } else if (password.length < 8) {
-                strengthText = 'Senha média';
-                strengthClass = 'strength-medium';
-            } else {
-                strengthText = 'Senha forte';
-                strengthClass = 'strength-strong';
-            }
-
-            const strengthIndicator = document.createElement('div');
-            strengthIndicator.id = 'password-strength-indicator';
-            strengthIndicator.className = `password-strength ${strengthClass}`;
-            strengthIndicator.textContent = strengthText;
-
-            // Inserir após o campo de nova senha
-            novaSenhaInput.parentNode.appendChild(strengthIndicator);
-        }
-
-        function simulatePasswordReset() {
-            // Mostrar spinner e desabilitar botão
-            buttonText.textContent = 'Redefinindo senha...';
-            buttonSpinner.classList.remove('d-none');
-            submitButton.disabled = true;
-
-            // Simular tempo de processamento
-            setTimeout(() => {
-                // Ocultar spinner e reabilitar botão
-                buttonText.textContent = 'Salvar nova senha';
-                buttonSpinner.classList.add('d-none');
-                submitButton.disabled = false;
-
-                // Limpar formulário
-                resetForm.reset();
-
-                // NOVO:
-                showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
-
-                // Remover indicador de força da senha
-                const strengthIndicator = document.getElementById('password-strength-indicator');
-                if (strengthIndicator) {
-                    strengthIndicator.remove();
-                }
-
-                // Rolagem suave para a mensagem de sucesso
-                resetSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                // Redirecionar para a página de login após alguns segundos
-                setTimeout(() => {
-                    window.location.href = "loginadm.html";
-                }, 2000);
-
-            }, 1500);
-        }
-
-        // LISTENERS DE EVENTOS
-
-        // Adicionar evento de clique nos botões de mostrar/ocultar senha
-        toggleButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const targetId = this.getAttribute('data-target');
-                const targetInput = document.getElementById(targetId);
-                const icon = this.querySelector('i');
-
-                if (targetInput.type === 'password') {
-                    targetInput.type = 'text';
-                    icon.classList.remove('bi-eye');
-                    icon.classList.add('bi-eye-slash');
-                } else {
-                    targetInput.type = 'password';
-                    icon.classList.remove('bi-eye-slash');
-                    icon.classList.add('bi-eye');
-                }
-            });
-        });
-
-        // Validação em tempo real da força da senha
-        novaSenhaInput.addEventListener('input', function () {
-            validatePasswordStrength(this.value);
-            clearError(); // Limpar erro ao usuário digitar
-        });
-
-        // Validação em tempo real da confirmação de senha
-        confirmarSenhaInput.addEventListener('input', function () {
-            clearError(); // Limpar erro ao usuário digitar
-        });
-
-        // Validação do formulário principal
-        resetForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const novaSenha = novaSenhaInput.value.trim();
-            const confirmarSenha = confirmarSenhaInput.value.trim();
-
-            // Validar campos
-            if (!novaSenha || !confirmarSenha) {
-                showError('Por favor, preencha todos os campos.');
-                return;
-            }
-
-            // Validar força da senha
-            if (!isPasswordStrong(novaSenha)) {
-                showError('A senha deve ter pelo menos 6 caracteres, incluindo letras e números.');
-                return;
-            }
-
-            // Validar se as senhas coincidem
-            if (novaSenha !== confirmarSenha) {
-                showError('As senhas não coincidem. Por favor, digite a mesma senha nos dois campos.');
-                return;
-            }
-
-            // Se chegou aqui, o formulário é válido
-            simulatePasswordReset();
-        });
-
-        // Validação em tempo real para remover alertas quando o usuário começar a digitar
-        const formInputs = document.querySelectorAll('#reset-form input');
-        formInputs.forEach(input => {
-            input.addEventListener('input', function () {
-                if (!resetError.classList.contains('d-none')) {
-                    clearError();
-                }
-            });
-        });
-
-    } // 🚨 FIM DO if (resetForm)
 });
 
 // Adicionar ao bloco do painel no script-principal.js
