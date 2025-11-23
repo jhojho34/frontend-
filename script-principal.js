@@ -1448,11 +1448,12 @@ document.addEventListener('DOMContentLoaded', () => {
  * NOTA: Esta API deve retornar TODOS os administradores (exceto o que está logado, talvez),
  * mas o endpoint é 'api/admin/all'. Se não existir, use o que você tiver.
  */
+// ... (dentro de function carregarAdministradoresNaTabela())
 async function carregarAdministradoresNaTabela() {
     const tbody = document.getElementById('tabela-administradores');
-    if (!tbody) return; // Garante que só roda na página correta
+    if (!tbody) return;
     
-    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Carregando usuários...</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando usuários...</td></tr>`;
 
     const token = getToken();
     if (!token) {
@@ -1461,34 +1462,49 @@ async function carregarAdministradoresNaTabela() {
     }
 
     try {
-        // ASSUME que a rota para listar todos os admins é /api/admin/all
-        const response = await fetch('/api/admin/all', { 
+        const urlApi = '/api/admin/all'; // Verifique se esta rota está correta no seu backend!
+        const response = await fetch(urlApi, { 
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}` 
             }
         });
 
-        if (response.status === 401) {
-            // A sessão expirou ou não tem permissão
-            showToast('Sessão expirada. Faça login novamente.', 'error');
-            window.location.href = 'loginadm.html';
-            return;
-        }
-
+        // Verificação de status não-OK (ex: 404, 500, etc.)
         if (!response.ok) {
-            throw new Error('Falha ao carregar a lista de administradores.');
+            // Tenta obter a mensagem de erro do backend
+            let errorMsg = `Falha ao carregar a lista de administradores. (Status: ${response.status})`;
+            try {
+                const errorData = await response.json();
+                // Usa a mensagem de erro do backend, se existir
+                errorMsg = errorData.error || errorData.mensagem || errorMsg; 
+            } catch (e) {
+                // Falhou ao ler o JSON (o erro pode ser HTML, por exemplo)
+            }
+
+            // Se for 401, faz o redirecionamento
+            if (response.status === 401) {
+                showToast('Sessão expirada. Faça login novamente.', 'error');
+                window.location.href = 'loginadm.html';
+                return;
+            }
+            
+            // Lança o erro para o bloco catch
+            throw new Error(errorMsg); 
         }
 
         const admins = await response.json();
+        
+        // ... (restante da lógica de exibição de admins) ...
         
         if (admins.length === 0) {
             tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Nenhum outro administrador cadastrado.</td></tr>`;
             return;
         }
 
+        // --- INÍCIO DA RENDERIZAÇÃO ---
         let html = '';
-        const adminLogadoId = document.getElementById('admin-id-hidden').value; // ID do admin logado
+        const adminLogadoId = document.getElementById('admin-id-hidden').value;
 
         admins.forEach(admin => {
             const isAdminLogado = admin._id === adminLogadoId;
@@ -1515,10 +1531,20 @@ async function carregarAdministradoresNaTabela() {
         });
 
         tbody.innerHTML = html;
+        // --- FIM DA RENDERIZAÇÃO ---
 
     } catch (error) {
         console.error("Erro ao carregar administradores:", error);
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
+        // Exibe o erro de forma mais detalhada na tabela
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="3" class="text-center text-danger py-4">
+                    <i class="bi bi-x-octagon-fill me-2"></i>
+                    **Erro de API/Servidor:** ${error.message}
+                    <div class="mt-2 text-small text-muted">Verifique o console do navegador e a rota **\`/api/admin/all\`** no seu backend.</div>
+                </td>
+            </tr>
+        `;
     }
 }
 
