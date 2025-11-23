@@ -293,17 +293,20 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Formatação do código (adiciona automaticamente o traço)
-    document.getElementById('code').addEventListener('input', function (e) {
-        let value = e.target.value.replace(/\D/g, '');
+    // 🚨 CORREÇÃO DA LINHA 297: Encapsular o addEventListener em uma verificação de existência
+    if (codeInput) { 
+        // Formatação do código (adiciona automaticamente o traço)
+        codeInput.addEventListener('input', function (e) { // Linha 297 corrigida
+            let value = e.target.value.replace(/\D/g, '');
 
-        if (value.length > 6) {
-            value = value.substring(0, 6);
-        }
+            if (value.length > 6) {
+                value = value.substring(0, 6);
+            }
 
-        // Formata como "123-456" mas armazena sem o traço
-        e.target.value = value;
-    });
+            // Formata como "123-456" mas armazena sem o traço
+            e.target.value = value;
+        });
+    }
 
     // Validação do formulário de e-mail
     emailForm.addEventListener('submit', function (e) {
