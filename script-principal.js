@@ -1752,9 +1752,11 @@ async function cadastrarCupom(event) {
     event.preventDefault();
 
     const idEdicao = document.getElementById('cupom-id-hidden').value;
+    
+    // AQUI ESTÁ O AJUSTE PRINCIPAL: Se estiver em edição, anexa o ID à URL.
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons';
-
+    const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons'; // <-- URL Corrigida
+    
     const token = getToken();
     if (!token) {
         showToast('Sessão expirada. Faça login novamente.', 'error');
@@ -1762,19 +1764,15 @@ async function cadastrarCupom(event) {
         return;
     }
 
-    // 1. Captura a string de data (Ex: '2025-12-01')
+    // Captura a string de data (Ex: '2025-12-01')
     const validadeString = document.getElementById('cupom-validade').value; 
     
-    // 2. Cria um objeto Date puro.
+    // Cria um objeto Date puro.
     let validadeData = new Date(validadeString);
 
-    // 🚀 FIX FUSO HORÁRIO (ESSENCIAL):
-    // Move o horário para o meio-dia (12h) UTC (Greenwich).
-    // Isso garante que o dia (01/12) seja salvo corretamente no banco de dados,
-    // eliminando o bug de ser puxado para o dia anterior pelo fuso horário local.
+    // FIX FUSO HORÁRIO: Move o horário para o meio-dia (12h) UTC.
     validadeData.setUTCHours(12, 0, 0, 0); 
 
-    // 3. Monta o objeto de dados com o Date corrigido
     const dadosCupom = {
         codigo: document.getElementById('cupom-codigo').value,
         descricao: document.getElementById('cupom-descricao').value,
@@ -1784,7 +1782,7 @@ async function cadastrarCupom(event) {
     };
 
     try {
-        const response = await fetch(urlApi, {
+        const response = await fetch(urlApi, { // Usa a urlApi corrigida
             method: metodoHttp,
             headers: {
                 'Content-Type': 'application/json',
@@ -1792,6 +1790,11 @@ async function cadastrarCupom(event) {
             },
             body: JSON.stringify(dadosCupom)
         });
+
+        if (response.status === 404) {
+             // Tratamento específico para o erro "Não encontrado"
+             throw new Error('O cupom não foi encontrado no servidor. Tente novamente.');
+        }
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -1801,10 +1804,7 @@ async function cadastrarCupom(event) {
         const acao = idEdicao ? 'atualizado' : 'cadastrado';
         limparFormularioCupom();
         
-        // Recarrega as tabelas e o index
         await carregarCuponsNaTabela();
-        // A função carregarCuponsNoIndex precisa estar acessível globalmente,
-        // então verificamos se existe antes de chamar.
         if (typeof carregarCuponsNoIndex === 'function') {
             carregarCuponsNoIndex(); 
         }
@@ -1922,17 +1922,28 @@ function editarCupom(id) {
         return;
     }
 
+    // 1. Preenche o ID Oculto do Cupom para Edição (PUT)
     document.getElementById('cupom-id-hidden').value = cupom._id;
     document.getElementById('cupom-codigo').value = cupom.codigo;
     document.getElementById('cupom-descricao').value = cupom.descricao;
     document.getElementById('cupom-loja').value = cupom.loja;
     document.getElementById('cupom-link').value = cupom.link;
 
-    // NOVO: Preenche o campo de data (formatado como YYYY-MM-DD para input[type="date"])
+    // 2. Correção de Fuso Horário para input[type="date"]
+    // O .toISOString().split('T')[0] converte o objeto Date (que o backend enviou com horário 12h UTC) 
+    // para o formato YYYY-MM-DD necessário para o input, sem perder o dia.
     const dataISO = new Date(cupom.validade).toISOString().split('T')[0];
     document.getElementById('cupom-validade').value = dataISO;
 
-    showToast('Cupom carregado para edição.');
+    // 3. 🛡️ ETAPA DE PREVENÇÃO (Limpeza do ID do Administrador)
+    // Garante que, ao editar um cupom, o ID do Administrador não esteja ativo no formulário de Configurações,
+    // prevenindo conflitos no envio de dados caso o usuário navegue entre abas.
+    const adminIdHidden = document.getElementById('admin-id-hidden');
+    if (adminIdHidden) {
+        adminIdHidden.value = '';
+    }
+
+    showToast('Cupom carregado para edição. Altere as informações e clique em "Salvar Cupom".', 'info');
 }
 
 async function excluirCupom(id, codigo) {
