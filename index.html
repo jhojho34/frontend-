@@ -75,8 +75,9 @@
             <div class="col-md-8">
                 <div class="search-box">
                     <div class="input-group mb-3">
-                        <input type="text" class="form-control form-control-lg" placeholder="Buscar no PromoShop">
-                        <button class="btn btn-primary" type="button">
+                        <input type="text" class="form-control form-control-lg" placeholder="Buscar no PromoShop"
+                            id="busca-texto">
+                        <button class="btn btn-primary" type="button" onclick="filtrarPromocoes()">
                             <i class="bi bi-search"></i> Buscar
                         </button>
                     </div>
@@ -117,10 +118,10 @@
         </div>
         <div class="row">
             <div class="col-12 text-center">
-                <button class="btn btn-primary" id="aplicar-filtros">
+                <button class="btn btn-primary" id="aplicar-filtros" onclick="filtrarPromocoes()">
                     <i class="bi bi-funnel"></i> Aplicar Filtros
                 </button>
-                <button class="btn btn-outline-secondary ms-2" id="limpar-filtros">
+                <button class="btn btn-outline-secondary ms-2" id="limpar-filtros" onclick="limparFiltros()">
                     <i class="bi bi-arrow-clockwise"></i> Limpar
                 </button>
             </div>
