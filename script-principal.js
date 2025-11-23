@@ -1260,84 +1260,162 @@ document.addEventListener('DOMContentLoaded', function () {
 // SCRIPT DE REDEFINIR SENHA:
 
 document.addEventListener('DOMContentLoaded', function () {
-    const contactForm = document.getElementById('contact-form');
-    const formError = document.getElementById('form-error');
-    const formSuccess = document.getElementById('form-success');
+    const resetForm = document.getElementById('reset-form');
+    const resetError = document.getElementById('reset-error');
+    const resetSuccess = document.getElementById('reset-success');
     const submitButton = document.getElementById('submit-button');
     const buttonText = document.getElementById('button-text');
     const buttonSpinner = document.getElementById('button-spinner');
 
-    if (contactForm) { // 🚨 CORREÇÃO: Verifica se o formulário de contato existe
-        contactForm.addEventListener('submit', function (e) {
+    if (resetForm) { 
+        // 1. DECLARAÇÃO DE VARIÁVEIS DE CAMPO (TOPO DO IF)
+        const novaSenhaInput = document.getElementById('nova-senha');
+        const confirmarSenhaInput = document.getElementById('confirmar-senha');
+        const toggleButtons = document.querySelectorAll('.toggle-password');
+
+
+        // 2. DECLARAÇÃO DE FUNÇÕES AUXILIARES (DEVE VIR ANTES DOS LISTENERS!)
+
+        function isPasswordStrong(password) {
+            const minLength = password.length >= 6;
+            const hasLetters = /[a-zA-Z]/.test(password);
+            const hasNumbers = /[0-9]/.test(password);
+            return minLength && hasLetters && hasNumbers;
+        }
+
+        function clearError() {
+            resetError.classList.add('d-none');
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            resetError.classList.remove('d-none');
+            resetError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function validatePasswordStrength(password) {
+            const existingIndicator = document.getElementById('password-strength-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            // ... (restante da lógica de validatePasswordStrength) ...
+            
+            if (!password) return;
+            let strengthText = '';
+            let strengthClass = '';
+
+            if (password.length < 6) {
+                strengthText = 'Senha muito curta';
+                strengthClass = 'strength-weak';
+            } else if (!isPasswordStrong(password)) {
+                strengthText = 'Senha fraca - use letras e números';
+                strengthClass = 'strength-weak';
+            } else if (password.length < 8) {
+                strengthText = 'Senha média';
+                strengthClass = 'strength-medium';
+            } else {
+                strengthText = 'Senha forte';
+                strengthClass = 'strength-strong';
+            }
+
+            const strengthIndicator = document.createElement('div');
+            strengthIndicator.id = 'password-strength-indicator';
+            strengthIndicator.className = `password-strength ${strengthClass}`;
+            strengthIndicator.textContent = strengthText;
+            novaSenhaInput.parentNode.appendChild(strengthIndicator);
+        }
+
+        function simulatePasswordReset() {
+            // ... (lógica de simulação, agora acessível) ...
+            buttonText.textContent = 'Redefinindo senha...';
+            buttonSpinner.classList.remove('d-none');
+            submitButton.disabled = true;
+
+            setTimeout(() => {
+                buttonText.textContent = 'Salvar nova senha';
+                buttonSpinner.classList.add('d-none');
+                submitButton.disabled = false;
+                resetForm.reset();
+                showToast('Senha redefinida com sucesso! Redirecionando para o login.', 'success');
+                
+                const strengthIndicator = document.getElementById('password-strength-indicator');
+                if (strengthIndicator) {
+                    strengthIndicator.remove();
+                }
+
+                resetSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => {
+                    window.location.href = "loginadm.html";
+                }, 2000);
+            }, 1500);
+        }
+
+        // 3. LISTENERS DE EVENTOS (DEVE VIR POR ÚLTIMO)
+
+        // Adicionar evento de clique nos botões de mostrar/ocultar senha
+        toggleButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                const icon = this.querySelector('i');
+
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    targetInput.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+
+        // Validação em tempo real da força da senha
+        novaSenhaInput.addEventListener('input', function () {
+            validatePasswordStrength(this.value); // AGORA ACESSÍVEL
+            clearError(); 
+        });
+
+        // Validação em tempo real da confirmação de senha
+        confirmarSenhaInput.addEventListener('input', function () {
+            clearError(); 
+        });
+
+        // Validação do formulário principal
+        resetForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            // Validar campos
-            const nome = document.getElementById('nome').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const assunto = document.getElementById('assunto').value;
-            const mensagem = document.getElementById('mensagem').value.trim();
+            const novaSenha = novaSenhaInput.value.trim();
+            const confirmarSenha = confirmarSenhaInput.value.trim();
 
-            // Verificar se todos os campos estão preenchidos
-            if (!nome || !email || !assunto || !mensagem) {
-                showToast('Por favor, preencha todos os campos obrigatórios.', 'error');
+            if (!novaSenha || !confirmarSenha) {
+                showError('Por favor, preencha todos os campos.');
                 return;
             }
-
-            // Validar e-mail (Assumindo que isValidEmail está no escopo global ou em um bloco anterior)
-            if (!isValidEmail(email)) {
-                showToast('Por favor, insira um e-mail válido.', 'error');
+            if (!isPasswordStrong(novaSenha)) { // AGORA ACESSÍVEL
+                showError('A senha deve ter pelo menos 6 caracteres, incluindo letras e números.');
                 return;
             }
-
-            // Se chegou aqui, o formulário é válido
-            simulateSubmission();
+            if (novaSenha !== confirmarSenha) {
+                showError('As senhas não coincidem. Por favor, digite a mesma senha nos dois campos.');
+                return;
+            }
+            simulatePasswordReset(); // AGORA ACESSÍVEL
         });
 
-    }
-
-    // Função para validar e-mail (necessária para o bloco acima)
-    function isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    // Função para simular envio do formulário
-    function simulateSubmission() {
-        // Mostrar spinner e desabilitar botão
-        buttonText.textContent = 'Enviando...';
-        buttonSpinner.classList.remove('d-none');
-        submitButton.disabled = true;
-
-        // Simular tempo de envio
-        setTimeout(() => {
-            // Ocultar spinner e reabilitar botão
-            buttonText.textContent = 'Enviar mensagem';
-            buttonSpinner.classList.add('d-none');
-            submitButton.disabled = false;
-
-            // Mostrar mensagem de sucesso
-            formSuccess.classList.remove('d-none');
-
-            // NOVO:
-            showToast('Mensagem enviada com sucesso! Em breve retornaremos o contato.', 'success');
-
-            // Limpar formulário
-            contactForm.reset();
-        }, 1500);
-    }
-
-    // Validação em tempo real para remover alertas quando o usuário começar a digitar
-    const formInputs = document.querySelectorAll('#contact-form input, #contact-form select, #contact-form textarea');
-    formInputs.forEach(input => {
-        input.addEventListener('input', function () {
-            if (!formError.classList.contains('d-none')) {
-                showToast(formError);
-            }
-            if (!formSuccess.classList.contains('d-none')) {
-                showToast(formSuccess);
-            }
+        // Validação em tempo real para remover alertas
+        const formInputs = document.querySelectorAll('#reset-form input');
+        formInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                if (!resetError.classList.contains('d-none')) {
+                    clearError();
+                }
+            });
         });
-    });
+
+    } // FIM DO if (resetForm)
 });
 
 // Adicionar ao bloco do painel no script-principal.js
