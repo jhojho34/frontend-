@@ -184,7 +184,7 @@ function filtrarPromocoes() {
     // 1. CAPTURA DOS VALORES
     // Novo: Pega o valor do campo de busca por texto
     const textoBusca = document.getElementById('busca-texto').value.toLowerCase();
-    
+
     // Antigos: Campos de filtro já existentes
     const categoria = document.getElementById('categoria').value;
     const loja = document.getElementById('loja').value;
@@ -193,11 +193,11 @@ function filtrarPromocoes() {
 
     const promocoesFiltradas = promocoes.filter(promocao => {
         // 2. LÓGICA DO FILTRO
-        
+
         // NOVO: Verifica se o título da promoção contém o texto de busca
         const atendeTexto = promocao.titulo.toLowerCase().includes(textoBusca);
         // Você pode adicionar mais campos se quiser buscar na descrição, loja, etc.
-        
+
         const atendeCategoria = categoria === 'todas' || promocao.categoria === categoria;
         const atendeLoja = loja === 'todas' || promocao.loja.toLowerCase() === loja;
         const atendePreco = promocao.precoNovo >= precoMin && promocao.precoNovo <= precoMax;
@@ -215,8 +215,8 @@ function filtrarPromocoes() {
 function limparFiltros(recarregar = true) {
     // Limpa o campo de busca por texto (assumindo id="busca-texto")
     const buscaTexto = document.getElementById('busca-texto');
-    if (buscaTexto) buscaTexto.value = ''; 
-    
+    if (buscaTexto) buscaTexto.value = '';
+
     // Limpa os outros filtros
     document.getElementById('categoria').value = 'todas';
     document.getElementById('loja').value = 'todas';
@@ -225,14 +225,14 @@ function limparFiltros(recarregar = true) {
 
     // Só recarrega se for uma chamada do botão 'Limpar'
     if (recarregar) {
-        carregarPromocoes(null, false); 
+        carregarPromocoes(null, false);
     }
 }
 
 // NOVO: Função para aplicar o filtro ao clicar no card
 function aplicarFiltroRapido(categoriaSelecionada) {
     // 1. Limpa outros filtros (texto, loja, preço) sem recarregar a página
-    limparFiltros(false); 
+    limparFiltros(false);
 
     // 2. Define o valor da categoria no campo de filtro principal
     const selectCategoria = document.getElementById('categoria');
@@ -242,7 +242,7 @@ function aplicarFiltroRapido(categoriaSelecionada) {
 
     // 3. Executa a filtragem
     filtrarPromocoes();
-    
+
     // Opcional: Rola a página para a seção de resultados para dar feedback imediato
     const container = document.getElementById('promocoes-container');
     if (container) {
@@ -873,17 +873,21 @@ async function editarPromocao(id) {
     showToast('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".');
 }
 
-function copiarLink(id) {
-    const promocao = promocoesPainel.find(p => p.id === id);
-    if (!promocao) return;
+function copiarLink(link) { // <-- AGORA RECEBE O LINK, NÃO O ID
+    // Remove a busca por ID, pois o link já foi fornecido.
+    // const promocao = promocoesPainel.find(p => p.id === id); 
+    // if (!promocao) return; // Não é mais necessário
 
-    navigator.clipboard.writeText(promocao.link)
+    // Usa o link recebido como argumento
+    navigator.clipboard.writeText(link)
         .then(() => {
+            // Certifique-se que showToast está definida!
             showToast('Link copiado para a área de transferência!');
         })
         .catch(err => {
             console.error('Erro ao copiar link: ', err);
-            showToast('Erro ao copiar link. Tente novamente.');
+            // Usando um alerta de fallback, caso showToast falhe ou seja redundante
+            showToast('Erro ao copiar link. Tente novamente.', 'error');
         });
 }
 
