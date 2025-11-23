@@ -41,6 +41,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="gerenciar-cupons">
+                        <i class="bi bi-ticket-perforated"></i> <span>Gerenciar Cupons</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#" data-section="configuracoes">
                         <i class="bi bi-gear"></i> <span>Configurações</span>
                     </a>
@@ -243,6 +248,62 @@
 
             <div class="chart-container mt-4">
                 <canvas id="clicksEvolutionChart"></canvas>
+            </div>
+        </div>
+
+        <div id="gerenciar-cupons" class="content-section">
+            <h2 class="section-title">Gerenciar Cupons</h2>
+
+            <div class="row">
+                <div class="col-md-5">
+                    <h4>Cadastrar / Editar Cupom</h4>
+                    <form id="form-cadastro-cupom">
+                        <input type="hidden" id="cupom-id-hidden" value="">
+
+                        <div class="mb-3">
+                            <label for="cupom-codigo" class="form-label">Código do Cupom</label>
+                            <input type="text" class="form-control" id="cupom-codigo" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cupom-descricao" class="form-label">Descrição (Ex: 10% OFF em
+                                Smartphones)</label>
+                            <input type="text" class="form-control" id="cupom-descricao" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cupom-loja" class="form-label">Loja Parceira</label>
+                            <input type="text" class="form-control" id="cupom-loja" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cupom-link" class="form-label">Link de Afiliação/Oferta</label>
+                            <input type="url" class="form-control" id="cupom-link" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Salvar Cupom</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="col-md-7">
+                    <h4>Cupons Cadastrados</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Descrição</th>
+                                    <th>Loja</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabela-cupons">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Carregando cupons...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 

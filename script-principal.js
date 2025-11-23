@@ -2,6 +2,7 @@
 // Dados das promoções (em um cenário real, viriam de um arquivo JSON)
 // let promocoes = JSON.parse(localStorage.getItem("promocoes")) || [];
 let promocoes = [];
+let cuponsPainel = [];
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
@@ -255,11 +256,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (index.html)
     const promocoesContainer = document.getElementById('promocoes-container');
+    const cuponsContainer = document.getElementById('cupons-container');
 
     if (promocoesContainer) {
 
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
         carregarPromocoes();
+
+        if (cuponsContainer) {
+            carregarCuponsNoIndex(); // <<< ADICIONE ESTA LINHA
+        }
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -582,6 +588,11 @@ function inicializarFormularios() {
         formCadastroNovoAdmin.addEventListener('submit', cadastrarNovoAdmin);
     }
 
+    const formCadastroCupom = document.getElementById('form-cadastro-cupom');
+    if (formCadastroCupom) {
+        formCadastroCupom.addEventListener('submit', cadastrarCupom);
+    }
+
 }
 
 // ... (Dentro do Conteúdo do script-painel.js) ...
@@ -622,6 +633,7 @@ function inicializarPainel() {
     carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
     carregarAdministradoresNaTabela();
+    carregarCuponsNaTabela()
 }
 
 
@@ -1654,3 +1666,240 @@ async function excluirAdmin(id, nome) {
 // Exportar funções globais para o HTML (Necessário para onclick)
 window.abrirEdicaoAdmin = abrirEdicaoAdmin;
 window.excluirAdmin = excluirAdmin;
+
+// =======================================================
+// NOVAS FUNÇÕES: GERENCIAMENTO DE CUPONS (PAINEL)
+// =======================================================
+
+function limparFormularioCupom() {
+    document.getElementById('form-cadastro-cupom').reset();
+    document.getElementById('cupom-id-hidden').value = '';
+}
+
+async function carregarCuponsNoIndex() {
+    const container = document.getElementById('cupons-container');
+    if (!container) return;
+
+    container.innerHTML = `<div class="col-12 text-center text-info py-3"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Buscando cupons...</div>`;
+
+    try {
+        // Rota pública para carregar cupons
+        const response = await fetch('/api/cupons'); 
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar cupons.');
+        }
+
+        const cupons = await response.json();
+        
+        if (cupons.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 text-center my-4">
+                    <i class="bi bi-ticket-slash" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-3">**Não temos cupons disponíveis no momento.**</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        cupons.forEach(cupom => {
+            html += `
+                <div class="col-lg-4 col-md-6">
+                    <div class="card card-coupon">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title text-primary"><i class="bi bi-shop me-2"></i> ${cupom.loja}</h5>
+                                <span class="badge bg-secondary">${cupom.codigo}</span>
+                            </div>
+                            <p class="card-text">${cupom.descricao}</p>
+                            <button class="btn btn-sm btn-outline-success w-100" 
+                                onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
+                                <i class="bi bi-clipboard"></i> Copiar Código e Ir à Loja
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error("Erro ao carregar cupons:", error);
+        container.innerHTML = `<div class="col-12 text-center text-danger py-4">Erro ao carregar cupons: ${error.message}</div>`;
+    }
+}
+
+function copiarCupom(codigo, link) {
+    navigator.clipboard.writeText(codigo)
+        .then(() => {
+            showToast(`Código ${codigo} copiado! Redirecionando...`, 'success');
+            // Abre o link em nova aba após a cópia
+            window.open(link, '_blank'); 
+        })
+        .catch(err => {
+            showToast('Erro ao copiar o código. Tente manualmente.', 'error');
+            console.error('Erro ao copiar cupom:', err);
+        });
+}
+
+// =======================================================
+// NOVAS FUNÇÕES: CRUD DE CUPONS (PAINEL)
+// =======================================================
+
+async function cadastrarCupom(event) {
+    event.preventDefault();
+
+    const idEdicao = document.getElementById('cupom-id-hidden').value;
+    const metodoHttp = idEdicao ? 'PUT' : 'POST';
+    const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons';
+
+    const token = getToken();
+    if (!token) {
+        showToast('Sessão expirada. Faça login novamente.', 'error');
+        window.location.href = 'loginadm.html';
+        return;
+    }
+
+    const dadosCupom = {
+        codigo: document.getElementById('cupom-codigo').value,
+        descricao: document.getElementById('cupom-descricao').value,
+        loja: document.getElementById('cupom-loja').value,
+        link: document.getElementById('cupom-link').value,
+    };
+
+    try {
+        const response = await fetch(urlApi, {
+            method: metodoHttp,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(dadosCupom)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro desconhecido ao salvar o cupom.');
+        }
+
+        const acao = idEdicao ? 'atualizado' : 'cadastrado';
+        limparFormularioCupom();
+        await carregarCuponsNaTabela();
+        carregarCuponsNoIndex(); // Atualiza a lista pública
+
+        showToast(`Cupom ${acao} com sucesso!`);
+
+    } catch (error) {
+        console.error(`Erro na operação de cupom:`, error);
+        showToast(`Erro ao salvar cupom: ${error.message}`, 'error');
+    }
+}
+
+async function carregarCuponsNaTabela() {
+    const tbody = document.getElementById('tabela-cupons');
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Carregando cupons...</td></tr>`;
+    
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/cupons', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error('Falha ao carregar cupons do painel.');
+        }
+
+        cuponsPainel = await response.json(); // Salva na variável global
+
+        if (cuponsPainel.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-4">Nenhum cupom cadastrado.</td></tr>`;
+            return;
+        }
+
+        let html = '';
+        cuponsPainel.forEach(cupom => {
+            html += `
+                <tr>
+                    <td><span class="badge bg-secondary">${cupom.codigo}</span></td>
+                    <td>${cupom.descricao}</td>
+                    <td>${cupom.loja}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary action-btn me-2" onclick="editarCupom('${cupom._id}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger action-btn" onclick="excluirCupom('${cupom._id}', '${cupom.codigo}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+
+    } catch (error) {
+        console.error("Erro ao carregar cupons:", error);
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
+    }
+}
+
+function editarCupom(id) {
+    const cupom = cuponsPainel.find(c => c._id === id); 
+    if (!cupom) {
+        showToast('Cupom não encontrado.', 'error');
+        return;
+    }
+
+    document.getElementById('cupom-id-hidden').value = cupom._id;
+    document.getElementById('cupom-codigo').value = cupom.codigo;
+    document.getElementById('cupom-descricao').value = cupom.descricao;
+    document.getElementById('cupom-loja').value = cupom.loja;
+    document.getElementById('cupom-link').value = cupom.link;
+
+    showToast('Cupom carregado para edição.');
+}
+
+async function excluirCupom(id, codigo) {
+    const result = await Swal.fire({
+        title: 'Excluir Cupom?',
+        text: `Tem certeza que deseja remover o cupom "${codigo}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (!result.isConfirmed) return;
+
+    const token = getToken();
+
+    try {
+        const response = await fetch(`/api/cupons/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Erro ao excluir.');
+        }
+
+        await carregarCuponsNaTabela();
+        carregarCuponsNoIndex(); // Atualiza a lista pública
+        Swal.fire('Excluído!', `O cupom ${codigo} foi removido.`, 'success');
+
+    } catch (error) {
+        showToast(`Falha ao excluir cupom: ${error.message}`, 'error');
+    }
+}
+
+// Exportar funções globais para o HTML
+window.editarCupom = editarCupom;
+window.excluirCupom = excluirCupom;
+window.copiarCupom = copiarCupom;
