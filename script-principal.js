@@ -91,7 +91,6 @@ function formatarPreco(preco) {
     }).format(preco);
 }
 
-// Função para carregar as promoções
 async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
     const container = document.getElementById('promocoes-container');
 
@@ -133,7 +132,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             container.innerHTML = `
                 <div class="col-12 text-center my-5">
                     <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
-                    <p class="text-muted mt-3">Não encontramos nenhuma promoção com os filtros aplicados.</p>
+                    <p class="text-muted mt-3">**Não encontramos nenhuma promoção com os filtros aplicados.**</p>
                     <button class="btn btn-outline-secondary mt-2" onclick="limparFiltros()">Limpar Filtros</button>
                 </div>
             `;
@@ -179,7 +178,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     });
 }
 
-// Função para filtrar promoções
+// Função para filtrar promoções (Sem alterações, mas incluída para contexto)
 function filtrarPromocoes() {
     const categoria = document.getElementById('categoria').value;
     const loja = document.getElementById('loja').value;
@@ -194,6 +193,8 @@ function filtrarPromocoes() {
         return atendeCategoria && atendeLoja && atendePreco;
     });
 
+    // Chama a função de carregamento, passando as promoções filtradas 
+    // e o flag 'true' para indicar que é uma operação de filtro.
     carregarPromocoes(promocoesFiltradas, true);
 }
 
@@ -203,7 +204,7 @@ function limparFiltros() {
     document.getElementById('loja').value = 'todas';
     document.getElementById('preco-min').value = '';
     document.getElementById('preco-max').value = '';
-    carregarPromocoes();
+    carregarPromocoes(null, false);
 }
 
 // Event Listeners (script.js)
