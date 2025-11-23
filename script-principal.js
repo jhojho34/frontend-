@@ -692,6 +692,7 @@ function inicializarPainel() {
     inicializarNavegacao();
     inicializarDashboard();
     inicializarFormularios(); // Inicia os listeners dos outros formulários
+    carregarDadosCliques();
     carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
     carregarAdministradoresNaTabela();
@@ -2124,5 +2125,28 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         console.error("Erro ao carregar cupons para seleção:", error);
         // Exibir a opção de erro
         selectElement.innerHTML = '<option value="" disabled>Erro ao carregar cupons</option>';
+    }
+}
+
+// NOVO: Função para buscar e carregar os dados de cliques reais
+async function carregarDadosCliques() {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        // ASSUMINDO que esta rota existe e retorna o JSON de cliques
+        const response = await fetch('/api/estatisticas/cliques', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
+            cliques = await response.json(); 
+        } else {
+            console.error("Falha ao buscar dados de cliques da API.");
+        }
+    } catch (error) {
+        console.error("Erro na conexão para buscar cliques:", error);
     }
 }
