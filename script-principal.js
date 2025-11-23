@@ -10,10 +10,12 @@ let cuponsAtivosMap = new Map();
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
-    // Retorna null se o precoAntigo for inválido ou não for maior que o precoNovo
-    if (!precoAntigo || precoAntigo <= precoNovo) {
-        return null; 
+    // 🎯 CORREÇÃO: Verifica se o precoAntigo é Falso (null, undefined, ou 0)
+    // OU se é menor ou igual ao precoNovo (não há desconto).
+    if (!precoAntigo || precoAntigo <= 0 || precoAntigo <= precoNovo) {
+        return null; // Retorna null para indicar que o desconto não deve ser exibido
     }
+    // O preço antigo é válido e é maior que o novo preço
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
 
