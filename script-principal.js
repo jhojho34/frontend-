@@ -1398,32 +1398,41 @@ async function cadastrarNovoAdmin(event) {
 // 🚨 Lembre-se de anexar esta função ao formulário na função inicializarFormularios:
 // Localização: function inicializarFormularios() { ... }
 
-const duracaoAnimacao = 500; // 500ms
+const TRANSITION_DURATION = 400; // 400ms
+document.body.style.opacity = '0';
 
-// 1. Lógica para a SAÍDA (Intercepta o clique em um link)
 document.addEventListener('DOMContentLoaded', () => {
-    // Adiciona a classe fade-in ao corpo da página (a página aparece)
-    document.body.classList.add('fade-in');
+    // 1. INÍCIO DO FADE-IN (PÁGINA CARREGADA)
+    // Ao carregar, o opacity: 0 definido acima é substituído por opacity: 1
+    document.body.style.opacity = '1';
 
+    // 2. MANIPULAÇÃO DE LINKS (FADE-OUT)
+    
+    // Seleciona TODOS os links exceto:
+    // a) Links que abrem em nova aba (target="_blank")
+    // b) Links que são usados para navegação interna (data-section)
     document.querySelectorAll('a:not([target="_blank"]):not([data-section])').forEach(link => {
         link.addEventListener('click', (e) => {
             const novaURL = link.href;
+            
+            // FILTRO ADICIONAL: Ignora links que são apenas âncoras dentro da mesma página (ex: href="#topo")
+            if (link.hash && link.pathname === window.location.pathname) {
+                // É apenas uma âncora interna. Deixa o navegador lidar com isso.
+                return; 
+            }
 
-            // Previne a navegação imediata
+            // Previne a navegação padrão do navegador
             e.preventDefault(); 
             
             // Inicia o efeito de saída (fade-out)
-            document.body.classList.remove('fade-in');
-            document.body.classList.add('fade-out');
-
-            // Espera a animação terminar e só então navega
+            document.body.classList.add('page-transition-out');
+            
+            // Navega para a nova URL após a animação terminar
             setTimeout(() => {
                 window.location.href = novaURL;
-            }, duracaoAnimacao);
+            }, TRANSITION_DURATION);
         });
     });
+    
+    // ... restante do seu código DOMContentLoaded ...
 });
-
-// 2. Lógica para a ENTRADA (Em CADA página HTML)
-// No seu HTML, o <body> deve começar com opacidade 0 (ou a classe fade-out)
-// e o JS acima irá removê-la para aplicar o fade-in ao carregar.

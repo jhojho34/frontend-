@@ -248,28 +248,3 @@ body {
     }
 }
 
-/* --- ESTILOS PARA TOASTS CUSTOMIZADOS --- */
-.custom-toast {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    opacity: 0.95;
-    min-width: 250px;
-}
-
-/* Garante o fade out suave */
-.custom-toast.hide {
-    opacity: 0;
-    transition: opacity 0.5s ease-out;
-}
-
-/* Efeito para quando a página está sendo carregada ou saindo */
-.fade-out {
-    opacity: 0;
-    transition: opacity 0.5s ease-out; /* Duração da animação de saída */
-}
-
-/* Efeito para quando a página já carregou e está entrando */
-.fade-in {
-    opacity: 1;
-    transition: opacity 0.5s ease-in; /* Duração da animação de entrada */
-}
