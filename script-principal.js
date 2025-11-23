@@ -1836,33 +1836,33 @@ async function carregarCuponsNaTabela() {
         cuponsPainel.forEach(cupom => {
             const dataValidade = new Date(cupom.validade);
             
-            // 🚀 FIX: Fuso Horário - Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
+            // 🚀 FIX Fuso Horário para Exibição: Garante que o dia seja exibido corretamente (Ex: 01/12/2025)
             const dataFormatada = dataValidade.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
             
             // --- Lógica de Status de Vencimento ---
             
-            // Normaliza as datas para comparar apenas o dia (meia-noite)
-            const dataAtualSemTempo = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-            const dataValidadeSemTempo = new Date(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
+            // 1. Normaliza as datas para a meia-noite (00:00:00) para comparação
+            const dataAtualNormalizada = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
+            const dataValidadeNormalizada = new Date(dataValidade.getFullYear(), dataValidade.getMonth(), dataValidade.getDate());
 
-            const expirado = dataValidadeSemTempo < dataAtualSemTempo; 
+            const expirado = dataValidadeNormalizada < dataAtualNormalizada; 
             
-            // Calcula a diferença em dias corridos (Math.ceil é crucial para o dia inteiro)
-            const diffTime = dataValidadeSemTempo.getTime() - dataAtualSemTempo.getTime();
-            const diferencaDias = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            // 2. Calcula a diferença em dias (FIX: usando Math.round para estabilidade)
+            const diffTime = dataValidadeNormalizada.getTime() - dataAtualNormalizada.getTime();
+            const diferencaDias = Math.round(diffTime / (1000 * 60 * 60 * 24)); 
             
             let statusBadge;
 
             if (expirado) {
                 statusBadge = `<span class="badge bg-danger">Expirado</span>`;
             } else if (diferencaDias === 0) {
-                // Vence no final do dia de hoje
+                // Vence hoje
                 statusBadge = `<span class="badge bg-warning text-dark">Vence Hoje!</span>`;
             } else if (diferencaDias <= 7) {
-                // Contagem regressiva (1 a 7 dias)
+                // 1 a 7 dias
                 statusBadge = `<span class="badge bg-warning text-dark">Vence em ${diferencaDias} dias</span>`;
             } else {
-                // Mais de 7 dias (Ex: o cupom de 01/12/2025 aparece como 8 dias aqui)
+                // Mais de 7 dias (Ex: 8 dias) - Mostra contagem exata e status Ativo
                 statusBadge = `<span class="badge bg-success">Ativo (${diferencaDias} dias)</span>`;
             }
             
