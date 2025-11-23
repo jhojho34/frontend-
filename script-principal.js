@@ -200,10 +200,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // 1. VERIFICAÇÃO PRINCIPAL: Checa se estamos na página inicial (index.html)
     const promocoesContainer = document.getElementById('promocoes-container');
 
-    if (promocoesContainer) { 
-        
+    if (promocoesContainer) {
+
         // A. Carregar promoções iniciais (correto, só roda se o container existir)
-        carregarPromocoes(); 
+        carregarPromocoes();
 
         // B. Elementos de Filtro e seus Listeners
         const aplicarFiltrosBtn = document.getElementById('aplicar-filtros');
@@ -217,19 +217,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // C. Adicionar animação suave ao rolar para as seções (Âncoras)
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                // 🚨 VERIFICAÇÃO ADICIONAL PARA O TARGET: ESSENCIAL
-                if (target) { 
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
+        const anchorLinks = document.querySelectorAll('a[href^="#"]');
+
+        if (anchorLinks) { // Verifica se encontrou algum link de âncora
+            anchorLinks.forEach(anchor => {
+                // Linha 285 corrigida: 
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+
+                    // ESSENCIAL: Garante que o alvo existe antes de tentar a rolagem
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
             });
-        });
+        }
     }
 
     // NOTA: A inicialização do Painel do Administrador (inicializarPainel) 
