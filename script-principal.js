@@ -227,12 +227,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 continue;
             }
 
-            // Linha 285 corrigida:
+            // Linha 296 corrigida:
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
 
-                // ESSENCIAL: Garante que o alvo existe antes de tentar a rolagem
+                // Garante que o alvo existe antes de tentar a rolagem
                 if (target) {
                     target.scrollIntoView({
                         behavior: 'smooth',
