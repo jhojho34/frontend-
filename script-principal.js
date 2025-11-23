@@ -673,7 +673,8 @@ function limparFormularioCadastro() {
 }
 
 // NOVO: Função de inicialização exclusiva para o PAINEL
-function inicializarPainel() {
+// A função deve ser 'async' para poder usar 'await' nas buscas de dados
+async function inicializarPainel() {
     const token = getToken();
 
     // 🚨 BLOQUEIO DE SEGURANÇA ISOLADO
@@ -683,20 +684,41 @@ function inicializarPainel() {
         return;
     }
 
-    // O código abaixo só será executado se o token existir
-    // Anexa o listener de Configurações AQUI, dentro da segurança:
+    // 1. Configuração Inicial e Listeners
     const formConfig = document.getElementById('form-config-admin');
-    formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
+    if (formConfig) {
+        formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
+    }
 
-    carregarDadosAdmin();
+    // Carrega o ID e os dados do admin logado (rápido, mas importante para segurança/ID)
+    await carregarDadosAdmin(); 
+    
+    // 2. 🎯 CARREGAMENTO DE DADOS CRÍTICOS (USANDO AWAIT)
+    
+    // Deve ser carregado primeiro para preencher a variável global 'cliques'
+    await carregarDadosCliques(); 
+
+    // Promocoes e Admins podem carregar em paralelo (se não dependessem de cliques)
+    // Mas vamos carregar as promoções primeiro, pois o dashboard depende de 'promocoesPainel'
+    await carregarPromocoesNaTabela();
+    await carregarAdministradoresNaTabela();
+    await carregarCuponsNaTabela();
+    
+    // 3. INICIALIZAÇÃO DE COMPONENTES DE INTERFACE
+    
+    // Inicializa a navegação e listeners de formulários
     inicializarNavegacao();
-    inicializarDashboard();
-    inicializarFormularios(); // Inicia os listeners dos outros formulários
-    carregarDadosCliques();
-    carregarPromocoesNaTabela();
+    inicializarFormularios(); 
+    
+    // 4. ATUALIZAÇÃO DE ESTATÍSTICAS (Dependem de dados prontos)
+    
+    // O Dashboard agora calcula o Total de Cliques e Produto Mais Clicado
+    inicializarDashboard(); 
+    
+    // A tabela de cliques no painel é populada com dados recém-buscados
     carregarCliquesNaTabela();
-    carregarAdministradoresNaTabela();
-    carregarCuponsNaTabela();
+    
+    // Carrega o dropdown de cupons para o formulário de cadastro de promoção
     carregarCuponsParaSelecao();
 }
 
@@ -2134,7 +2156,7 @@ async function carregarDadosCliques() {
     if (!token) return;
 
     try {
-        // ASSUMINDO que esta rota existe e retorna o JSON de cliques
+        // Assume que a rota do backend está funcionando corretamente
         const response = await fetch('/api/estatisticas/cliques', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -2142,9 +2164,10 @@ async function carregarDadosCliques() {
 
         if (response.ok) {
             // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
-            cliques = await response.json(); 
+            window.cliques = await response.json(); 
         } else {
             console.error("Falha ao buscar dados de cliques da API.");
+            showToast("Falha ao carregar estatísticas de cliques.", 'warning');
         }
     } catch (error) {
         console.error("Erro na conexão para buscar cliques:", error);
