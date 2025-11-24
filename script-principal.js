@@ -10,9 +10,13 @@ let cuponsAtivosMap = new Map();
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
-    // Retorna null se o precoAntigo for inválido ou não for maior que o precoNovo
-    if (!precoAntigo || precoAntigo <= precoNovo) {
-        return null; 
+    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
+
+    if (!precoAntigoValido || precoAntigo <= precoNovo) {
+        if (precoNovo > 0) {
+            return 0; // Retorna 0 para ser exibido como 0%
+        }
+        return null; // Retorna null se não houver base para cálculo
     }
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
@@ -99,6 +103,19 @@ function formatarPreco(preco) {
     }).format(preco);
 }
 
+function calcularDesconto(precoAntigo, precoNovo) {
+    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
+
+    if (!precoAntigoValido || precoAntigo <= precoNovo) {
+        if (typeof precoNovo === 'number' && precoNovo > 0) {
+            return 0;
+        }
+        return null;
+    }
+    return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
+}
+
+
 async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
     const container = document.getElementById('promocoes-container');
 
@@ -112,7 +129,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     if (promocoesParaExibir === null) {
         try {
             // A. Busca Promoções
-            const promocoesResponse = await fetch('https://34.151.216.55:3000/api/promocoes');
+            const promocoesResponse = await fetch('/api/promocoes');
             if (!promocoesResponse.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
@@ -120,12 +137,9 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             promocoesParaExibir = promocoes;
 
             // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
-            const cuponsResponse = await fetch('http://34.151.216.55:3000/api/cupons'); // Rota pública
+            const cuponsResponse = await fetch('/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
-
-                // Cria o mapa: Map<cupomId, cupomObjeto>
-                // Isso permite acessar rapidamente os detalhes do cupom pelo ID.
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
@@ -156,66 +170,84 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    // --- PASSO 2: Lógica de Renderização com Cupons ---
+    // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
     promocoesParaExibir.forEach(promocao => {
+        // Calcula o desconto (será 0 se preçoAntigo for 0, ou o valor real)
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
-        // NOVO: Renderização dos Cupons Relacionados
+        // 🎯 FIX 1: O badge é renderizado se desconto não for null (ou seja, 0 ou um valor real)
+        const discountBadgeHtml = desconto !== null
+            ? `<span class="discount-badge">-${desconto}%</span>`
+            : '';
+
+        // Renderização dos Cupons Relacionados
         let cuponsHtml = '';
-        if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
+        const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
 
-            // Filtra e mapeia apenas os cupons que estão ativos e existem no mapa
-            const cuponsAtivosRelacionados = promocao.cuponsRelacionados
-                .map(cupomId => cuponsAtivosMap.get(cupomId))
-                .filter(cupom => cupom); // Remove IDs que não correspondem a cupons ativos
+        const cuponsAtivosRelacionados = cuponsRelacionadosIds
+            .map(cupomId => cuponsAtivosMap.get(cupomId))
+            .filter(cupom => cupom);
 
-            if (cuponsAtivosRelacionados.length > 0) {
-                cuponsHtml += '<div class="coupon-badges mt-2">';
-                cuponsAtivosRelacionados.forEach(cupom => {
-                    // Cria o botão de cupom que chama a função copiarCupom()
-                    cuponsHtml += `
+        if (cuponsAtivosRelacionados.length > 0) {
+            cuponsHtml += '<div class="coupon-badges mt-2">';
+            cuponsAtivosRelacionados.forEach(cupom => {
+                cuponsHtml += `
                      <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
                              title="${cupom.descricao}"
                              onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
                          <i class="bi bi-ticket"></i> ${cupom.codigo}
                      </button>
                  `;
-                });
-                cuponsHtml += '</div>';
-            }
+            });
+            cuponsHtml += '</div>';
+        } else {
+            // Renderiza o badge "Nenhum Cupom"
+            cuponsHtml = `
+                <div class="coupon-badges mt-2">
+                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
+                          title="Nenhum cupom disponível para este produto">
+                        <i class="bi bi-ticket-slash"></i> Nenhum Cupom
+                    </span>
+                </div>
+             `;
         }
 
-        // ... (Criação do Card HTML)
+        // 🎯 FIX 2: Define o HTML do Preço Antigo
+        // Renderiza se desconto for diferente de null E o precoAntigo for maior que zero.
+        const oldPriceHtml = desconto !== null && promocao.precoAntigo > 0
+            ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>`
+            : '';
+
+        // Criação do Card HTML
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
         card.innerHTML = `
-        <div class="card card-promo">
-            <div class="position-relative">
-                <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
-                <span class="discount-badge">-${desconto}%</span>
-            </div>
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">${promocao.titulo}</h5>
-                
-                <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
+            <div class="card card-promo">
+                <div class="position-relative">
+                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
+                    
+                    ${discountBadgeHtml} </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">${promocao.titulo}</h5>
+                    
+                    <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
 
-                ${cuponsHtml} 
-                
-                <div class="mt-auto">
-                    <div class="d-flex align-items-center mb-2 mt-2">
-                        <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
-                        <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="store-badge">${promocao.loja}</span>
-                        <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
-                            Ver Promoção
-                        </a>
+                    ${cuponsHtml}
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex align-items-center mb-2 mt-2">
+                            ${oldPriceHtml} <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="store-badge">${promocao.loja}</span>
+                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
+                                Ver Promoção
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
 
         container.appendChild(card);
     });
@@ -653,7 +685,8 @@ function limparFormularioCadastro() {
 }
 
 // NOVO: Função de inicialização exclusiva para o PAINEL
-function inicializarPainel() {
+// A função deve ser 'async' para poder usar 'await' nas buscas de dados
+async function inicializarPainel() {
     const token = getToken();
 
     // 🚨 BLOQUEIO DE SEGURANÇA ISOLADO
@@ -663,19 +696,41 @@ function inicializarPainel() {
         return;
     }
 
-    // O código abaixo só será executado se o token existir
-    // Anexa o listener de Configurações AQUI, dentro da segurança:
+    // 1. Configuração Inicial e Listeners
     const formConfig = document.getElementById('form-config-admin');
-    formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
+    if (formConfig) {
+        formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
+    }
 
-    carregarDadosAdmin();
+    // Carrega o ID e os dados do admin logado (rápido, mas importante para segurança/ID)
+    await carregarDadosAdmin();
+
+    // 2. 🎯 CARREGAMENTO DE DADOS CRÍTICOS (USANDO AWAIT)
+
+    // Deve ser carregado primeiro para preencher a variável global 'cliques'
+    await carregarDadosCliques();
+
+    // Promocoes e Admins podem carregar em paralelo (se não dependessem de cliques)
+    // Mas vamos carregar as promoções primeiro, pois o dashboard depende de 'promocoesPainel'
+    await carregarPromocoesNaTabela();
+    await carregarAdministradoresNaTabela();
+    await carregarCuponsNaTabela();
+
+    // 3. INICIALIZAÇÃO DE COMPONENTES DE INTERFACE
+
+    // Inicializa a navegação e listeners de formulários
     inicializarNavegacao();
+    inicializarFormularios();
+
+    // 4. ATUALIZAÇÃO DE ESTATÍSTICAS (Dependem de dados prontos)
+
+    // O Dashboard agora calcula o Total de Cliques e Produto Mais Clicado
     inicializarDashboard();
-    inicializarFormularios(); // Inicia os listeners dos outros formulários
-    carregarPromocoesNaTabela();
+
+    // A tabela de cliques no painel é populada com dados recém-buscados
     carregarCliquesNaTabela();
-    carregarAdministradoresNaTabela();
-    carregarCuponsNaTabela();
+
+    // Carrega o dropdown de cupons para o formulário de cadastro de promoção
     carregarCuponsParaSelecao();
 }
 
@@ -695,7 +750,7 @@ async function cadastrarPromocao() {
     // Verifica se estamos em modo de edição ou cadastro
     const idEdicao = document.getElementById('produto-id-hidden').value;
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `https://34.151.216.55:3000/api/promocoes/${idEdicao}` : 'https://34.151.216.55:3000/api/promocoes';
+    const urlApi = idEdicao ? `/api/promocoes/${idEdicao}` : '/api/promocoes';
 
     // 1. Coleta dos dados
     const nome = document.getElementById('produto-nome').value;
@@ -784,130 +839,91 @@ async function cadastrarPromocao() {
     }
 }
 
-async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
-    const container = document.getElementById('promocoes-container');
+async function carregarPromocoesNaTabela() {
+    const tbody = document.getElementById('tabela-promocoes');
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Carregando promoções...</td></tr>`;
 
-    if (!container) {
+    const token = getToken();
+
+    // Checagem redundante de token (embora já feita no DOMContentLoaded)
+    if (!token) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Erro: Administrador não autenticado.</td></tr>`;
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...';
-
-    // --- PASSO 1: Busca e Processa Promoções e Cupons ---
-    if (promocoesParaExibir === null) {
-        try {
-            // A. Busca Promoções
-            const promocoesResponse = await fetch('https://34.151.216.55:3000/api/promocoes');
-            if (!promocoesResponse.ok) {
-                throw new Error('Falha ao carregar promoções da API.');
+    try {
+        const response = await fetch('/api/promocoes', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}` // Envia o token JWT
             }
-            promocoes = await promocoesResponse.json();
-            promocoesParaExibir = promocoes;
+        });
 
-            // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
-            const cuponsResponse = await fetch('https://34.151.216.55:3000/api/cupons'); // Rota pública
-            if (cuponsResponse.ok) {
-                const cuponsAtivos = await cuponsResponse.json();
-
-                cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
-            } else {
-                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
-            }
-
-        } catch (error) {
-            console.error("Erro ao carregar dados:", error);
-            container.innerHTML = '<div class="alert alert-danger" role="alert">Não foi possível carregar as promoções. Verifique o servidor.</div>';
+        if (response.status === 401) {
+            // Se o token expirou ou é inválido
+            showToast('Sessão expirada. Faça login novamente.', 'error');
+            window.location.href = 'loginadm.html';
             return;
         }
-    }
 
-    container.innerHTML = '';
+        if (!response.ok) {
+            throw new Error('Falha ao carregar a lista de promoções.');
+        }
 
-    // LÓGICA DE CHECAGEM DE RESULTADOS
-    if (promocoesParaExibir.length === 0) {
-        if (isFiltered) {
-            container.innerHTML = `
-                <div class="col-12 text-center my-5">
-                    <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
-                    <p class="text-muted mt-3">**Não encontramos nenhuma promoção com os filtros aplicados.**</p>
-                    <button class="btn btn-outline-secondary mt-2" onclick="limparFiltros()">Limpar Filtros</button>
-                </div>
+        // 1. Atualiza a variável global do painel com os dados do banco
+        promocoesPainel = await response.json();
+
+        // 2. Atualiza o Dashboard e Cliques (AGORA OS DADOS ESTÃO PRONTOS!)
+        inicializarDashboard();
+        carregarCliquesNaTabela(); // Atualiza a tabela de cliques usando a nova lista de promoções
+
+        if (promocoesPainel.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        Nenhuma promoção cadastrada. <a href="#" data-section="cadastrar-promocao" class="nav-link-inline">Cadastre a primeira promoção</a>.
+                    </td>
+                </tr>
             `;
-        } else {
-            container.innerHTML = '<p class="text-center text-muted">Nenhuma promoção encontrada no momento.</p>';
-        }
-        return;
-    }
-
-    // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
-    promocoesParaExibir.forEach(promocao => {
-        const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
-
-        // Renderização dos Cupons Relacionados
-        let cuponsHtml = '';
-        const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
-
-        const cuponsAtivosRelacionados = cuponsRelacionadosIds
-            .map(cupomId => cuponsAtivosMap.get(cupomId))
-            .filter(cupom => cupom); // Apenas cupons válidos e ativos
-
-        if (cuponsAtivosRelacionados.length > 0) {
-            // Se houver cupons ativos, renderiza os botões clicáveis
-            cuponsHtml += '<div class="coupon-badges mt-2">';
-            cuponsAtivosRelacionados.forEach(cupom => {
-                cuponsHtml += `
-                     <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
-                             title="${cupom.descricao}"
-                             onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
-                         <i class="bi bi-ticket"></i> ${cupom.codigo}
-                     </button>
-                 `;
-            });
-            cuponsHtml += '</div>';
-        } else {
-            // 🎯 CORREÇÃO: Renderiza o badge "Nenhum Cupom" com a classe de desabilitado
-            cuponsHtml = `
-                <div class="coupon-badges mt-2">
-                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
-                          title="Nenhum cupom disponível para este produto">
-                        <i class="bi bi-ticket-slash"></i> Nenhum Cupom
-                    </span>
-                </div>
-             `;
+            return;
         }
 
-        // Criação do Card HTML
-        const card = document.createElement('div');
-        card.className = 'col-lg-3 col-md-4 col-sm-6';
-        card.innerHTML = `
-            <div class="card card-promo">
-                <div class="position-relative">
-                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
-                    <span class="discount-badge">-${desconto}%</span>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">${promocao.titulo}</h5>
-                    
-                    <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
+        // 3. Renderiza a Tabela
+        let html = '';
+        promocoesPainel.forEach(promocao => {
+            // Usa '_id' do MongoDB para ações
+            const idPromocao = promocao._id;
+            // A lógica de cliques ainda depende do objeto 'cliques' local.
+            const cliquesProduto = cliques[idPromocao] ? cliques[idPromocao].total : 0;
 
-                    ${cuponsHtml} <div class="mt-auto">
-                        <div class="d-flex align-items-center mb-2 mt-2">
-                            <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
-                            <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="store-badge">${promocao.loja}</span>
-                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
-                                Ver Promoção
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            html += `
+            <tr>
+                <td>${promocao.titulo}</td>
+                <td><span class="badge bg-secondary">${promocao.categoria}</span></td>
+                <td>R$ ${promocao.precoNovo.toFixed(2)}</td>
+                <td>${promocao.loja}</td>
+                <td>${cliquesProduto}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary action-btn" onclick="editarPromocao('${idPromocao}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-success action-btn" onclick="copiarLink('${promocao.link}')">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger action-btn" onclick="excluirPromocao('${idPromocao}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
         `;
+        });
 
-        container.appendChild(card);
-    });
+        tbody.innerHTML = html;
+
+    } catch (error) {
+        console.error("Erro ao carregar promoções:", error);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
+    }
 }
 
 function carregarCliquesNaTabela() {
@@ -1031,7 +1047,7 @@ async function excluirPromocao(id) {
     }
 
     try {
-        const response = await fetch(`https://34.151.216.55:3000/api/promocoes/${id}`, {
+        const response = await fetch(`/api/promocoes/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -1787,7 +1803,7 @@ async function carregarCuponsNoIndex() {
 
     try {
         // Rota pública para carregar cupons
-        const response = await fetch('https://34.151.216.55:3000/api/cupons');
+        const response = await fetch('/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons.');
@@ -1858,7 +1874,7 @@ async function cadastrarCupom(event) {
 
     // AQUI ESTÁ O AJUSTE PRINCIPAL: Se estiver em edição, anexa o ID à URL.
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `https://34.151.216.55:3000/api/cupons/${idEdicao}` : 'https://34.151.216.55:3000/api/cupons'; // <-- URL Corrigida
+    const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons'; // <-- URL Corrigida
 
     const token = getToken();
     if (!token) {
@@ -1944,7 +1960,7 @@ async function carregarCuponsNaTabela() {
 
     try {
         // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
-        const response = await fetch('https://34.151.216.55:3000/api/cupons/painel', {
+        const response = await fetch('/api/cupons/painel', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2073,7 +2089,7 @@ async function excluirCupom(id, codigo) {
     const token = getToken();
 
     try {
-        const response = await fetch(`https://34.151.216.55:3000/api/cupons/${id}`, {
+        const response = await fetch(`/api/cupons/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2110,7 +2126,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('https://34.151.216.55:3000/api/cupons');
+        const response = await fetch('/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
@@ -2143,5 +2159,29 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         console.error("Erro ao carregar cupons para seleção:", error);
         // Exibir a opção de erro
         selectElement.innerHTML = '<option value="" disabled>Erro ao carregar cupons</option>';
+    }
+}
+
+// NOVO: Função para buscar e carregar os dados de cliques reais
+async function carregarDadosCliques() {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+        // Assume que a rota do backend está funcionando corretamente
+        const response = await fetch('/api/estatisticas/cliques', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
+            window.cliques = await response.json();
+        } else {
+            console.error("Falha ao buscar dados de cliques da API.");
+            showToast("Falha ao carregar estatísticas de cliques.", 'warning');
+        }
+    } catch (error) {
+        console.error("Erro na conexão para buscar cliques:", error);
     }
 }
