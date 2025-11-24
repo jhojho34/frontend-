@@ -4,20 +4,15 @@
 let promocoes = [];
 let cuponsPainel = [];
 let cuponsAtivosParaSelecao = [];
-let lojasPainel = [];
 
 // Variável global para armazenar cupons ativos no frontend (usada aqui)
 let cuponsAtivosMap = new Map();
 
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
-    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
-
-    if (!precoAntigoValido || precoAntigo <= precoNovo) {
-        if (precoNovo > 0) {
-            return 0; // Retorna 0 para ser exibido como 0%
-        }
-        return null; // Retorna null se não houver base para cálculo
+    // Retorna null se o precoAntigo for inválido ou não for maior que o precoNovo
+    if (!precoAntigo || precoAntigo <= precoNovo) {
+        return null; 
     }
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
@@ -104,19 +99,6 @@ function formatarPreco(preco) {
     }).format(preco);
 }
 
-function calcularDesconto(precoAntigo, precoNovo) {
-    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
-
-    if (!precoAntigoValido || precoAntigo <= precoNovo) {
-        if (typeof precoNovo === 'number' && precoNovo > 0) {
-            return 0;
-        }
-        return null;
-    }
-    return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
-}
-
-
 async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
     const container = document.getElementById('promocoes-container');
 
@@ -141,6 +123,9 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             const cuponsResponse = await fetch('/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
+
+                // Cria o mapa: Map<cupomId, cupomObjeto>
+                // Isso permite acessar rapidamente os detalhes do cupom pelo ID.
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
@@ -171,84 +156,66 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
+    // --- PASSO 2: Lógica de Renderização com Cupons ---
     promocoesParaExibir.forEach(promocao => {
-        // Calcula o desconto (será 0 se preçoAntigo for 0, ou o valor real)
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
-        // 🎯 FIX 1: O badge é renderizado se desconto não for null (ou seja, 0 ou um valor real)
-        const discountBadgeHtml = desconto !== null
-            ? `<span class="discount-badge">-${desconto}%</span>`
-            : '';
-
-        // Renderização dos Cupons Relacionados
+        // NOVO: Renderização dos Cupons Relacionados
         let cuponsHtml = '';
-        const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
+        if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
 
-        const cuponsAtivosRelacionados = cuponsRelacionadosIds
-            .map(cupomId => cuponsAtivosMap.get(cupomId))
-            .filter(cupom => cupom);
+            // Filtra e mapeia apenas os cupons que estão ativos e existem no mapa
+            const cuponsAtivosRelacionados = promocao.cuponsRelacionados
+                .map(cupomId => cuponsAtivosMap.get(cupomId))
+                .filter(cupom => cupom); // Remove IDs que não correspondem a cupons ativos
 
-        if (cuponsAtivosRelacionados.length > 0) {
-            cuponsHtml += '<div class="coupon-badges mt-2">';
-            cuponsAtivosRelacionados.forEach(cupom => {
-                cuponsHtml += `
+            if (cuponsAtivosRelacionados.length > 0) {
+                cuponsHtml += '<div class="coupon-badges mt-2">';
+                cuponsAtivosRelacionados.forEach(cupom => {
+                    // Cria o botão de cupom que chama a função copiarCupom()
+                    cuponsHtml += `
                      <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
                              title="${cupom.descricao}"
                              onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
                          <i class="bi bi-ticket"></i> ${cupom.codigo}
                      </button>
                  `;
-            });
-            cuponsHtml += '</div>';
-        } else {
-            // Renderiza o badge "Nenhum Cupom"
-            cuponsHtml = `
-                <div class="coupon-badges mt-2">
-                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
-                          title="Nenhum cupom disponível para este produto">
-                        <i class="bi bi-ticket-slash"></i> Nenhum Cupom
-                    </span>
-                </div>
-             `;
+                });
+                cuponsHtml += '</div>';
+            }
         }
 
-        // 🎯 FIX 2: Define o HTML do Preço Antigo
-        // Renderiza se desconto for diferente de null E o precoAntigo for maior que zero.
-        const oldPriceHtml = desconto !== null && promocao.precoAntigo > 0
-            ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>`
-            : '';
-
-        // Criação do Card HTML
+        // ... (Criação do Card HTML)
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
         card.innerHTML = `
-            <div class="card card-promo">
-                <div class="position-relative">
-                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
-                    
-                    ${discountBadgeHtml} </div>
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">${promocao.titulo}</h5>
-                    
-                    <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
+        <div class="card card-promo">
+            <div class="position-relative">
+                <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
+                <span class="discount-badge">-${desconto}%</span>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h5 class="card-title">${promocao.titulo}</h5>
+                
+                <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
 
-                    ${cuponsHtml}
-                    
-                    <div class="mt-auto">
-                        <div class="d-flex align-items-center mb-2 mt-2">
-                            ${oldPriceHtml} <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="store-badge">${promocao.loja}</span>
-                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
-                                Ver Promoção
-                            </a>
-                        </div>
+                ${cuponsHtml} 
+                
+                <div class="mt-auto">
+                    <div class="d-flex align-items-center mb-2 mt-2">
+                        <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
+                        <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="store-badge">${promocao.loja}</span>
+                        <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
+                            Ver Promoção
+                        </a>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
         container.appendChild(card);
     });
@@ -637,51 +604,37 @@ function carregarTopProdutos() {
 }
 
 // Formulários
-/**
- * Inicializa e configura os event listeners para todos os formulários do painel.
- */
 function inicializarFormularios() {
-    // 1. Formulário de Cadastro de Promoção
-    const formCadastroPromocao = document.getElementById('form-cadastro-promocao');
-    if (formCadastroPromocao) {
-        formCadastroPromocao.addEventListener('submit', function (e) {
-            e.preventDefault();
-            cadastrarPromocao();
-        });
+    // Formulário de cadastro de promoção
+    const formCadastro = document.getElementById('form-cadastro-promocao');
+    formCadastro.addEventListener('submit', function (e) {
+        e.preventDefault();
+        cadastrarPromocao();
+    });
+    // Botão limpar formulário (USAR NOVA FUNÇÃO DE LIMPEZA)
+    document.getElementById('btn-limpar-form').addEventListener('click', function () {
+        // formCadastro.reset();  <-- REMOVER
+        limparFormularioCadastro(); // <--- NOVO
+    });
+
+    // Formulário de configurações do admin
+    const formConfig = document.getElementById('form-config-admin');
+    formConfig.addEventListener('submit', function (e) {
+        e.preventDefault();
+        salvarConfiguracoesAdmin();
+    });
+
+    // NOVO: Formulário de cadastro de novo admin
+    const formCadastroNovoAdmin = document.getElementById('form-cadastro-admin-novo');
+    if (formCadastroNovoAdmin) {
+        formCadastroNovoAdmin.addEventListener('submit', cadastrarNovoAdmin);
     }
 
-    // Botão limpar formulário de promoção
-    const btnLimparForm = document.getElementById('btn-limpar-form');
-    if (btnLimparForm) {
-        btnLimparForm.addEventListener('click', limparFormularioCadastro);
-    }
-
-    // 2. Formulário de Gerenciamento de Cupons
     const formCadastroCupom = document.getElementById('form-cadastro-cupom');
     if (formCadastroCupom) {
         formCadastroCupom.addEventListener('submit', cadastrarCupom);
     }
 
-    // 🚀 3. NOVO: Formulário de Cadastro/Edição de Loja 
-    const formCadastroLoja = document.getElementById('form-cadastro-loja');
-    if (formCadastroLoja) {
-        formCadastroLoja.addEventListener('submit', cadastrarLoja);
-    }
-
-    // 4. Formulário de Configurações do Admin (Update Dados)
-    const formConfig = document.getElementById('form-config-admin');
-    if (formConfig) {
-        formConfig.addEventListener('submit', function (e) {
-            e.preventDefault();
-            salvarConfiguracoesAdmin();
-        });
-    }
-
-    // 5. Formulário de Cadastro de Novo Admin
-    const formCadastroNovoAdmin = document.getElementById('form-cadastro-admin-novo');
-    if (formCadastroNovoAdmin) {
-        formCadastroNovoAdmin.addEventListener('submit', cadastrarNovoAdmin);
-    }
 }
 
 // ... (Dentro do Conteúdo do script-painel.js) ...
@@ -700,8 +653,7 @@ function limparFormularioCadastro() {
 }
 
 // NOVO: Função de inicialização exclusiva para o PAINEL
-// A função deve ser 'async' para poder usar 'await' nas buscas de dados
-async function inicializarPainel() {
+function inicializarPainel() {
     const token = getToken();
 
     // 🚨 BLOQUEIO DE SEGURANÇA ISOLADO
@@ -711,42 +663,19 @@ async function inicializarPainel() {
         return;
     }
 
-    // 1. Configuração Inicial e Listeners
+    // O código abaixo só será executado se o token existir
+    // Anexa o listener de Configurações AQUI, dentro da segurança:
     const formConfig = document.getElementById('form-config-admin');
-    if (formConfig) {
-        formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
-    }
+    formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
 
-    // Carrega o ID e os dados do admin logado (rápido, mas importante para segurança/ID)
-    await carregarDadosAdmin();
-
-    // 2. 🎯 CARREGAMENTO DE DADOS CRÍTICOS (USANDO AWAIT)
-
-    // Deve ser carregado primeiro para preencher a variável global 'cliques'
-    await carregarDadosCliques();
-
-    // Promocoes e Admins podem carregar em paralelo (se não dependessem de cliques)
-    // Mas vamos carregar as promoções primeiro, pois o dashboard depende de 'promocoesPainel'
-    await carregarPromocoesNaTabela();
-    await carregarAdministradoresNaTabela();
-    await carregarCuponsNaTabela();
-    await carregarLojasNaTabela();
-
-    // 3. INICIALIZAÇÃO DE COMPONENTES DE INTERFACE
-
-    // Inicializa a navegação e listeners de formulários
+    carregarDadosAdmin();
     inicializarNavegacao();
-    inicializarFormularios();
-
-    // 4. ATUALIZAÇÃO DE ESTATÍSTICAS (Dependem de dados prontos)
-
-    // O Dashboard agora calcula o Total de Cliques e Produto Mais Clicado
     inicializarDashboard();
-
-    // A tabela de cliques no painel é populada com dados recém-buscados
+    inicializarFormularios(); // Inicia os listeners dos outros formulários
+    carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
-
-    // Carrega o dropdown de cupons para o formulário de cadastro de promoção
+    carregarAdministradoresNaTabela();
+    carregarCuponsNaTabela();
     carregarCuponsParaSelecao();
 }
 
@@ -855,91 +784,130 @@ async function cadastrarPromocao() {
     }
 }
 
-async function carregarPromocoesNaTabela() {
-    const tbody = document.getElementById('tabela-promocoes');
-    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Carregando promoções...</td></tr>`;
+async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
+    const container = document.getElementById('promocoes-container');
 
-    const token = getToken();
-
-    // Checagem redundante de token (embora já feita no DOMContentLoaded)
-    if (!token) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Erro: Administrador não autenticado.</td></tr>`;
+    if (!container) {
         return;
     }
 
-    try {
-        const response = await fetch('/api/promocoes', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}` // Envia o token JWT
+    container.innerHTML = 'Carregando ofertas...';
+
+    // --- PASSO 1: Busca e Processa Promoções e Cupons ---
+    if (promocoesParaExibir === null) {
+        try {
+            // A. Busca Promoções
+            const promocoesResponse = await fetch('/api/promocoes');
+            if (!promocoesResponse.ok) {
+                throw new Error('Falha ao carregar promoções da API.');
             }
-        });
+            promocoes = await promocoesResponse.json();
+            promocoesParaExibir = promocoes;
 
-        if (response.status === 401) {
-            // Se o token expirou ou é inválido
-            showToast('Sessão expirada. Faça login novamente.', 'error');
-            window.location.href = 'loginadm.html';
+            // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
+            const cuponsResponse = await fetch('/api/cupons'); // Rota pública
+            if (cuponsResponse.ok) {
+                const cuponsAtivos = await cuponsResponse.json();
+
+                cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
+            } else {
+                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+            }
+
+        } catch (error) {
+            console.error("Erro ao carregar dados:", error);
+            container.innerHTML = '<div class="alert alert-danger" role="alert">Não foi possível carregar as promoções. Verifique o servidor.</div>';
             return;
         }
-
-        if (!response.ok) {
-            throw new Error('Falha ao carregar a lista de promoções.');
-        }
-
-        // 1. Atualiza a variável global do painel com os dados do banco
-        promocoesPainel = await response.json();
-
-        // 2. Atualiza o Dashboard e Cliques (AGORA OS DADOS ESTÃO PRONTOS!)
-        inicializarDashboard();
-        carregarCliquesNaTabela(); // Atualiza a tabela de cliques usando a nova lista de promoções
-
-        if (promocoesPainel.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
-                        Nenhuma promoção cadastrada. <a href="#" data-section="cadastrar-promocao" class="nav-link-inline">Cadastre a primeira promoção</a>.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        // 3. Renderiza a Tabela
-        let html = '';
-        promocoesPainel.forEach(promocao => {
-            // Usa '_id' do MongoDB para ações
-            const idPromocao = promocao._id;
-            // A lógica de cliques ainda depende do objeto 'cliques' local.
-            const cliquesProduto = cliques[idPromocao] ? cliques[idPromocao].total : 0;
-
-            html += `
-            <tr>
-                <td>${promocao.titulo}</td>
-                <td><span class="badge bg-secondary">${promocao.categoria}</span></td>
-                <td>R$ ${promocao.precoNovo.toFixed(2)}</td>
-                <td>${promocao.loja}</td>
-                <td>${cliquesProduto}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-primary action-btn" onclick="editarPromocao('${idPromocao}')">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success action-btn" onclick="copiarLink('${promocao.link}')">
-                        <i class="bi bi-clipboard"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger action-btn" onclick="excluirPromocao('${idPromocao}')">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        });
-
-        tbody.innerHTML = html;
-
-    } catch (error) {
-        console.error("Erro ao carregar promoções:", error);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
     }
+
+    container.innerHTML = '';
+
+    // LÓGICA DE CHECAGEM DE RESULTADOS
+    if (promocoesParaExibir.length === 0) {
+        if (isFiltered) {
+            container.innerHTML = `
+                <div class="col-12 text-center my-5">
+                    <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
+                    <p class="text-muted mt-3">**Não encontramos nenhuma promoção com os filtros aplicados.**</p>
+                    <button class="btn btn-outline-secondary mt-2" onclick="limparFiltros()">Limpar Filtros</button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = '<p class="text-center text-muted">Nenhuma promoção encontrada no momento.</p>';
+        }
+        return;
+    }
+
+    // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
+    promocoesParaExibir.forEach(promocao => {
+        const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
+
+        // Renderização dos Cupons Relacionados
+        let cuponsHtml = '';
+        const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
+
+        const cuponsAtivosRelacionados = cuponsRelacionadosIds
+            .map(cupomId => cuponsAtivosMap.get(cupomId))
+            .filter(cupom => cupom); // Apenas cupons válidos e ativos
+
+        if (cuponsAtivosRelacionados.length > 0) {
+            // Se houver cupons ativos, renderiza os botões clicáveis
+            cuponsHtml += '<div class="coupon-badges mt-2">';
+            cuponsAtivosRelacionados.forEach(cupom => {
+                cuponsHtml += `
+                     <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
+                             title="${cupom.descricao}"
+                             onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
+                         <i class="bi bi-ticket"></i> ${cupom.codigo}
+                     </button>
+                 `;
+            });
+            cuponsHtml += '</div>';
+        } else {
+            // 🎯 CORREÇÃO: Renderiza o badge "Nenhum Cupom" com a classe de desabilitado
+            cuponsHtml = `
+                <div class="coupon-badges mt-2">
+                    <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
+                          title="Nenhum cupom disponível para este produto">
+                        <i class="bi bi-ticket-slash"></i> Nenhum Cupom
+                    </span>
+                </div>
+             `;
+        }
+
+        // Criação do Card HTML
+        const card = document.createElement('div');
+        card.className = 'col-lg-3 col-md-4 col-sm-6';
+        card.innerHTML = `
+            <div class="card card-promo">
+                <div class="position-relative">
+                    <img src="${promocao.imagem}" class="card-img-top" alt="${promocao.titulo}">
+                    <span class="discount-badge">-${desconto}%</span>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">${promocao.titulo}</h5>
+                    
+                    <p class="card-text description-text text-muted small mb-2">${promocao.descricao || ''}</p> 
+
+                    ${cuponsHtml} <div class="mt-auto">
+                        <div class="d-flex align-items-center mb-2 mt-2">
+                            <span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>
+                            <span class="new-price">${formatarPreco(promocao.precoNovo)}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="store-badge">${promocao.loja}</span>
+                            <a href="${promocao.link}" class="btn btn-primary btn-sm" target="_blank">
+                                Ver Promoção
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
 }
 
 function carregarCliquesNaTabela() {
@@ -975,25 +943,15 @@ function carregarCliquesNaTabela() {
 }
 
 async function editarPromocao(id) {
-    // Busca a promoção na lista global já carregada
-    const promocao = promocoesPainel.find(p => p._id === id);
+    const promocao = promocoesPainel.find(p => p._id === id); // Busca na lista já carregada da API
 
     if (!promocao) {
         showToast('Promoção não encontrada na lista atual.', 'error');
         return;
     }
 
-    // Limpa o formulário de Cadastro de Loja, prevenindo conflitos no ID oculto
-    limparFormularioLoja();
-
-    // 1. 🚀 PRÉ-CARREGAMENTO DOS DROPDOWNS DINÂMICOS
-
-    // Pré-carrega a lista de cupons (necessário antes de selecionar)
+    // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
     await carregarCuponsParaSelecao(promocao._id);
-
-    // 🚀 NOVO: Pré-carrega a lista de lojas (necessário antes de selecionar)
-    await carregarLojasParaSelecao();
-
 
     // 2. Configurar o ID Oculto para o PUT (Edição)
     document.getElementById('produto-id-hidden').value = id;
@@ -1004,13 +962,14 @@ async function editarPromocao(id) {
     document.getElementById('produto-descricao').value = promocao.descricao || '';
     document.getElementById('produto-preco-antigo').value = promocao.precoAntigo;
     document.getElementById('produto-preco-atual').value = promocao.precoNovo;
+    document.getElementById('produto-loja').value = promocao.loja;
     document.getElementById('produto-imagem').value = promocao.imagem || '';
     document.getElementById('produto-link').value = promocao.link;
 
     // 4. 🎯 Lógica para Selecionar o ÚNICO Cupom Relacionado (Seleção Única)
     const cuponsSelect = document.getElementById('cupons-relacionados');
     if (cuponsSelect) {
-        // Deseleciona o valor atual
+        // Deseleciona o valor atual (caso haja)
         cuponsSelect.value = "";
 
         // Se houver cupons relacionados salvos, seleciona o primeiro (e único)
@@ -1021,23 +980,7 @@ async function editarPromocao(id) {
         }
     }
 
-    // 5. 🎯 NOVO: Seleciona a Loja Cadastrada
-    const lojaSelect = document.getElementById('produto-loja');
-    if (lojaSelect) {
-        // Assume que o valor da opção (value) é o nome da loja (conforme sugerido)
-        lojaSelect.value = promocao.loja;
-
-        // Se a loja não for encontrada no novo select dinâmico, pode significar que:
-        // a) O valor no banco de dados está errado.
-        // b) A loja foi excluída após o cadastro.
-        // Neste caso, limpamos e avisamos o usuário.
-        if (lojaSelect.value !== promocao.loja) {
-            showToast(`A loja "${promocao.loja}" não foi encontrada na lista de lojas cadastradas. Por favor, selecione uma nova loja.`, 'warning');
-            lojaSelect.value = ""; // Limpa a seleção
-        }
-    }
-
-    // 6. Navegar para a aba de cadastro
+    // 5. Navegar para a aba de cadastro
     document.querySelector('[data-section="cadastrar-promocao"]').click();
 
     showToast('Promoção carregada para edição. Faça as alterações necessárias e clique em "Salvar Promoção".', 'info');
@@ -2202,253 +2145,3 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         selectElement.innerHTML = '<option value="" disabled>Erro ao carregar cupons</option>';
     }
 }
-
-// ... (após carregarCuponsParaSelecao)
-
-// 🚀 NOVO: Carrega as opções de loja no select do formulário de promoção
-async function carregarLojasParaSelecao() {
-    const selectElement = document.getElementById('produto-loja');
-    if (!selectElement) return;
-
-    // Se lojasPainel já estiver carregado, use-o (otimização)
-    if (lojasPainel.length === 0) {
-        // Tenta carregar as lojas se a lista global estiver vazia.
-        // Isso garante que o dropdown funcione mesmo se a função inicializarPainel
-        // não tiver terminado (ou se for chamada de forma isolada).
-        await carregarLojasNaTabela();
-    }
-
-    let htmlOptions = '';
-
-    htmlOptions += '<option value="">Selecione uma loja</option>';
-
-    if (lojasPainel.length === 0) {
-        htmlOptions = '<option value="" disabled selected>Nenhuma loja cadastrada</option>';
-        selectElement.innerHTML = htmlOptions;
-        return;
-    }
-
-    lojasPainel.forEach(loja => {
-        // Valor e texto do select serão o nome da loja (se o seu backend for guardar apenas o nome)
-        // Se o seu backend for guardar o ID, mude para: value="${loja._id}"
-        htmlOptions += `<option value="${loja.nome}">${loja.nome}</option>`;
-    });
-
-    selectElement.innerHTML = htmlOptions;
-
-    // Re-aplica o valor, caso tenha sido preenchido por editarPromocao (abaixo)
-    const valorAntigo = selectElement.getAttribute('data-old-value');
-    if (valorAntigo) {
-        selectElement.value = valorAntigo;
-        selectElement.removeAttribute('data-old-value');
-    }
-}
-
-// NOVO: Função para buscar e carregar os dados de cliques reais
-async function carregarDadosCliques() {
-    const token = getToken();
-    if (!token) return;
-
-    try {
-        // Assume que a rota do backend está funcionando corretamente
-        const response = await fetch('/api/estatisticas/cliques', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-            // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
-            window.cliques = await response.json();
-        } else {
-            console.error("Falha ao buscar dados de cliques da API.");
-            showToast("Falha ao carregar estatísticas de cliques.", 'warning');
-        }
-    } catch (error) {
-        console.error("Erro na conexão para buscar cliques:", error);
-    }
-}
-
-// =======================================================
-// NOVAS FUNÇÕES: GERENCIAMENTO DE LOJAS
-// =======================================================
-
-function limparFormularioLoja() {
-    document.getElementById('form-cadastro-loja').reset();
-    document.getElementById('loja-id-hidden').value = '';
-    // Restaura o título, se necessário
-    const formTitle = document.querySelector('#gerenciar-lojas .col-md-5 h4');
-    if (formTitle) formTitle.textContent = `Cadastrar / Editar Loja`;
-}
-window.limparFormularioLoja = limparFormularioLoja; // Exporta para o onclick
-
-async function cadastrarLoja(event) {
-    event.preventDefault();
-
-    const idEdicao = document.getElementById('loja-id-hidden').value;
-
-    const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `/api/lojas/${idEdicao}` : '/api/lojas';
-
-    const token = getToken();
-    if (!token) {
-        showToast('Sessão expirada. Faça login novamente.', 'error');
-        window.location.href = 'loginadm.html';
-        return;
-    }
-
-    const dadosLoja = {
-        nome: document.getElementById('loja-nome').value,
-        url: document.getElementById('loja-url').value,
-        logo: document.getElementById('loja-logo').value
-    };
-
-    try {
-        const response = await fetch(urlApi, {
-            method: metodoHttp,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(dadosLoja)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Erro desconhecido ao salvar a loja.');
-        }
-
-        const acao = idEdicao ? 'atualizada' : 'cadastrada';
-
-        limparFormularioLoja();
-
-        // Recarrega as tabelas e selects que dependem das lojas
-        await carregarLojasNaTabela();
-        carregarLojasParaSelecao();
-
-        showToast(`Loja ${acao} com sucesso!`, 'success');
-
-    } catch (error) {
-        console.error(`Erro na operação de loja:`, error);
-        showToast(`Erro ao salvar loja: ${error.message}`, 'error');
-    }
-}
-
-
-async function carregarLojasNaTabela() {
-    const tbody = document.getElementById('tabela-lojas');
-    if (!tbody) return;
-
-    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-info py-4"><i class="bi bi-arrow-clockwise spinner-border spinner-border-sm me-2"></i> Carregando lojas...</td></tr>`;
-
-    const token = getToken();
-    if (!token) {
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Sessão não autenticada.</td></tr>`;
-        return;
-    }
-
-    try {
-        // Rota para listar todas as lojas (acessível apenas por admin)
-        const response = await fetch('/api/lojas/painel', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Falha ao carregar a lista de lojas.');
-        }
-
-        // 🚀 ATUALIZA A VARIÁVEL GLOBAL
-        lojasPainel = await response.json();
-
-        if (lojasPainel.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted py-4">Nenhuma loja cadastrada.</td></tr>`;
-            return;
-        }
-
-        let html = '';
-        lojasPainel.forEach(loja => {
-            html += `
-                <tr>
-                    <td><i class="bi bi-shop me-2"></i> ${loja.nome}</td>
-                    <td class="text-truncate" style="max-width: 200px;">
-                        ${loja.url ? `<a href="${loja.url}" target="_blank">${loja.url}</a>` : '-'}
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary action-btn me-2" onclick="editarLoja('${loja._id}')">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger action-btn" onclick="excluirLoja('${loja._id}', '${loja.nome}')">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = html;
-
-    } catch (error) {
-        console.error("Erro ao carregar lojas:", error);
-        tbody.innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Erro de conexão: ${error.message}</td></tr>`;
-    }
-}
-
-
-function editarLoja(id) {
-    const loja = lojasPainel.find(l => l._id === id);
-    if (!loja) {
-        showToast('Loja não encontrada.', 'error');
-        return;
-    }
-
-    // 1. Preenche o ID Oculto da Loja para Edição (PUT)
-    document.getElementById('loja-id-hidden').value = loja._id;
-    document.getElementById('loja-nome').value = loja.nome;
-    document.getElementById('loja-url').value = loja.url || '';
-    document.getElementById('loja-logo').value = loja.logo || '';
-
-    // Atualiza o título do formulário para indicar edição
-    const formTitle = document.querySelector('#gerenciar-lojas .col-md-5 h4');
-    if (formTitle) formTitle.textContent = `Editar Loja: ${loja.nome}`;
-
-    showToast('Loja carregada para edição.', 'info');
-}
-window.editarLoja = editarLoja;
-
-async function excluirLoja(id, nome) {
-    const result = await Swal.fire({
-        title: 'Excluir Loja?',
-        text: `Tem certeza que deseja remover a loja "${nome}"? Isso removerá todas as promoções associadas!`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonText: 'Cancelar'
-    });
-
-    if (!result.isConfirmed) return;
-
-    const token = getToken();
-
-    try {
-        const response = await fetch(`/api/lojas/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro ao excluir.');
-        }
-
-        // Recarrega tudo que depende de lojas
-        await carregarLojasNaTabela();
-        carregarLojasParaSelecao();
-        carregarPromocoesNaTabela();
-
-        Swal.fire('Excluída!', `A loja ${nome} foi removida.`, 'success');
-
-    } catch (error) {
-        showToast(`Falha ao excluir loja: ${error.message}`, 'error');
-    }
-}
-window.excluirLoja = excluirLoja;
