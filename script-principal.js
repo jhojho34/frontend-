@@ -112,7 +112,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     if (promocoesParaExibir === null) {
         try {
             // A. Busca Promoções
-            const promocoesResponse = await fetch('/api/promocoes');
+            const promocoesResponse = await fetch('http://34.151.216.55:3000/api/promocoes');
             if (!promocoesResponse.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
@@ -120,7 +120,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             promocoesParaExibir = promocoes;
 
             // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
-            const cuponsResponse = await fetch('/api/cupons'); // Rota pública
+            const cuponsResponse = await fetch('http://34.151.216.55:3000/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
 
@@ -695,7 +695,7 @@ async function cadastrarPromocao() {
     // Verifica se estamos em modo de edição ou cadastro
     const idEdicao = document.getElementById('produto-id-hidden').value;
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `/api/promocoes/${idEdicao}` : '/api/promocoes';
+    const urlApi = idEdicao ? `http://34.151.216.55:3000/api/promocoes/${idEdicao}` : 'http://34.151.216.55:3000/api/promocoes';
 
     // 1. Coleta dos dados
     const nome = document.getElementById('produto-nome').value;
@@ -797,7 +797,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     if (promocoesParaExibir === null) {
         try {
             // A. Busca Promoções
-            const promocoesResponse = await fetch('/api/promocoes');
+            const promocoesResponse = await fetch('http://34.151.216.55:3000/api/promocoes');
             if (!promocoesResponse.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
@@ -805,7 +805,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             promocoesParaExibir = promocoes;
 
             // B. Busca Cupons Ativos e Cria o Mapa (Lookup Table)
-            const cuponsResponse = await fetch('/api/cupons'); // Rota pública
+            const cuponsResponse = await fetch('http://34.151.216.55:3000/api/cupons'); // Rota pública
             if (cuponsResponse.ok) {
                 const cuponsAtivos = await cuponsResponse.json();
 
@@ -1031,7 +1031,7 @@ async function excluirPromocao(id) {
     }
 
     try {
-        const response = await fetch(`/api/promocoes/${id}`, {
+        const response = await fetch(`http://34.151.216.55:3000/api/promocoes/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -1787,7 +1787,7 @@ async function carregarCuponsNoIndex() {
 
     try {
         // Rota pública para carregar cupons
-        const response = await fetch('/api/cupons');
+        const response = await fetch('http://34.151.216.55:3000/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons.');
@@ -1858,7 +1858,7 @@ async function cadastrarCupom(event) {
 
     // AQUI ESTÁ O AJUSTE PRINCIPAL: Se estiver em edição, anexa o ID à URL.
     const metodoHttp = idEdicao ? 'PUT' : 'POST';
-    const urlApi = idEdicao ? `/api/cupons/${idEdicao}` : '/api/cupons'; // <-- URL Corrigida
+    const urlApi = idEdicao ? `http://34.151.216.55:3000/api/cupons/${idEdicao}` : 'http://34.151.216.55:3000/api/cupons'; // <-- URL Corrigida
 
     const token = getToken();
     if (!token) {
@@ -1944,7 +1944,7 @@ async function carregarCuponsNaTabela() {
 
     try {
         // Usa a rota do painel para listar todos os cupons (ativos e vencidos)
-        const response = await fetch('/api/cupons/painel', {
+        const response = await fetch('http://34.151.216.55:3000/api/cupons/painel', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2073,7 +2073,7 @@ async function excluirCupom(id, codigo) {
     const token = getToken();
 
     try {
-        const response = await fetch(`/api/cupons/${id}`, {
+        const response = await fetch(`http://34.151.216.55:3000/api/cupons/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -2110,7 +2110,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('/api/cupons');
+        const response = await fetch('http://34.151.216.55:3000/api/cupons');
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
