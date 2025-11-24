@@ -129,7 +129,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
     if (promocoesParaExibir === null) {
         try {
             // A. Busca Promoções
-            const promocoesResponse = await fetch('/api/promocoes');
+            const promocoesResponse = await fetch('/promocoes');
             if (!promocoesResponse.ok) {
                 throw new Error('Falha ao carregar promoções da API.');
             }
