@@ -103,19 +103,6 @@ function formatarPreco(preco) {
     }).format(preco);
 }
 
-function calcularDesconto(precoAntigo, precoNovo) {
-    const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
-    
-    if (!precoAntigoValido || precoAntigo <= precoNovo) {
-        if (typeof precoNovo === 'number' && precoNovo > 0) {
-            return 0; 
-        }
-        return null; 
-    }
-    return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
-}
-
-
 async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false) {
     const container = document.getElementById('promocoes-container');
 
@@ -172,10 +159,10 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
 
     // --- PASSO 2: Lógica de Renderização com Cupons e Descrição ---
     promocoesParaExibir.forEach(promocao => {
-        // Calcula o desconto (será 0 se preçoAntigo for 0, ou o valor real)
+        // Calcula o desconto (será 0 se o preço antigo for 0 ou null, e null se não tiver base)
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
-        // 🎯 FIX 1: O badge é renderizado se desconto não for null (ou seja, 0 ou um valor real)
+        // 🎯 AJUSTE 1: Define o badge de desconto (só se o desconto for diferente de null)
         const discountBadgeHtml = desconto !== null 
             ? `<span class="discount-badge">-${desconto}%</span>` 
             : '';
@@ -189,6 +176,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
             .filter(cupom => cupom); 
 
         if (cuponsAtivosRelacionados.length > 0) {
+             // Se houver cupons ativos, renderiza os botões clicáveis
              cuponsHtml += '<div class="coupon-badges mt-2">';
              cuponsAtivosRelacionados.forEach(cupom => {
                  cuponsHtml += `
@@ -212,10 +200,10 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
              `;
         }
         
-        // 🎯 FIX 2: Define o HTML do Preço Antigo
-        // Renderiza se desconto for diferente de null E o precoAntigo for maior que zero.
-        const oldPriceHtml = desconto !== null && promocao.precoAntigo > 0
-            ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>`
+        // 🎯 AJUSTE 2: Define o HTML do Preço Antigo (só mostra se o desconto for diferente de null)
+        // Se desconto for 0, oldPriceHtml é renderizado com o valor de R$ 0,00 riscado.
+        const oldPriceHtml = desconto !== null 
+            ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo || 0)}</span>`
             : '';
         
         // Criação do Card HTML
@@ -685,8 +673,7 @@ function limparFormularioCadastro() {
 }
 
 // NOVO: Função de inicialização exclusiva para o PAINEL
-// A função deve ser 'async' para poder usar 'await' nas buscas de dados
-async function inicializarPainel() {
+function inicializarPainel() {
     const token = getToken();
 
     // 🚨 BLOQUEIO DE SEGURANÇA ISOLADO
@@ -696,41 +683,19 @@ async function inicializarPainel() {
         return;
     }
 
-    // 1. Configuração Inicial e Listeners
+    // O código abaixo só será executado se o token existir
+    // Anexa o listener de Configurações AQUI, dentro da segurança:
     const formConfig = document.getElementById('form-config-admin');
-    if (formConfig) {
-        formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
-    }
+    formConfig.addEventListener('submit', salvarConfiguracoesAdmin);
 
-    // Carrega o ID e os dados do admin logado (rápido, mas importante para segurança/ID)
-    await carregarDadosAdmin(); 
-    
-    // 2. 🎯 CARREGAMENTO DE DADOS CRÍTICOS (USANDO AWAIT)
-    
-    // Deve ser carregado primeiro para preencher a variável global 'cliques'
-    await carregarDadosCliques(); 
-
-    // Promocoes e Admins podem carregar em paralelo (se não dependessem de cliques)
-    // Mas vamos carregar as promoções primeiro, pois o dashboard depende de 'promocoesPainel'
-    await carregarPromocoesNaTabela();
-    await carregarAdministradoresNaTabela();
-    await carregarCuponsNaTabela();
-    
-    // 3. INICIALIZAÇÃO DE COMPONENTES DE INTERFACE
-    
-    // Inicializa a navegação e listeners de formulários
+    carregarDadosAdmin();
     inicializarNavegacao();
-    inicializarFormularios(); 
-    
-    // 4. ATUALIZAÇÃO DE ESTATÍSTICAS (Dependem de dados prontos)
-    
-    // O Dashboard agora calcula o Total de Cliques e Produto Mais Clicado
-    inicializarDashboard(); 
-    
-    // A tabela de cliques no painel é populada com dados recém-buscados
+    inicializarDashboard();
+    inicializarFormularios(); // Inicia os listeners dos outros formulários
+    carregarPromocoesNaTabela();
     carregarCliquesNaTabela();
-    
-    // Carrega o dropdown de cupons para o formulário de cadastro de promoção
+    carregarAdministradoresNaTabela();
+    carregarCuponsNaTabela();
     carregarCuponsParaSelecao();
 }
 
@@ -2168,7 +2133,7 @@ async function carregarDadosCliques() {
     if (!token) return;
 
     try {
-        // Assume que a rota do backend está funcionando corretamente
+        // ASSUMINDO que esta rota existe e retorna o JSON de cliques
         const response = await fetch('/api/estatisticas/cliques', {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
@@ -2176,10 +2141,9 @@ async function carregarDadosCliques() {
 
         if (response.ok) {
             // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
-            window.cliques = await response.json(); 
+            cliques = await response.json(); 
         } else {
             console.error("Falha ao buscar dados de cliques da API.");
-            showToast("Falha ao carregar estatísticas de cliques.", 'warning');
         }
     } catch (error) {
         console.error("Erro na conexão para buscar cliques:", error);
