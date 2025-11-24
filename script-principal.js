@@ -11,7 +11,7 @@ let cuponsAtivosMap = new Map();
 // Função para calcular o desconto percentual
 function calcularDesconto(precoAntigo, precoNovo) {
     const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
-
+    
     if (!precoAntigoValido || precoAntigo <= precoNovo) {
         if (precoNovo > 0) {
             return 0; // Retorna 0 para ser exibido como 0%
@@ -105,12 +105,12 @@ function formatarPreco(preco) {
 
 function calcularDesconto(precoAntigo, precoNovo) {
     const precoAntigoValido = typeof precoAntigo === 'number' && precoAntigo > 0;
-
+    
     if (!precoAntigoValido || precoAntigo <= precoNovo) {
         if (typeof precoNovo === 'number' && precoNovo > 0) {
-            return 0;
+            return 0; 
         }
-        return null;
+        return null; 
     }
     return Math.round(((precoAntigo - precoNovo) / precoAntigo) * 100);
 }
@@ -123,7 +123,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         return;
     }
 
-    container.innerHTML = 'Carregando ofertas...';
+    container.innerHTML = 'Carregando ofertas...'; 
 
     // --- PASSO 1: Busca e Processa Promoções e Cupons ---
     if (promocoesParaExibir === null) {
@@ -142,7 +142,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
                 const cuponsAtivos = await cuponsResponse.json();
                 cuponsAtivosMap = new Map(cuponsAtivos.map(cupom => [cupom._id, cupom]));
             } else {
-                console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
+                 console.warn("Aviso: Falha ao carregar a lista de cupons ativos para o index.");
             }
 
         } catch (error) {
@@ -152,7 +152,7 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         }
     }
 
-    container.innerHTML = '';
+    container.innerHTML = ''; 
 
     // LÓGICA DE CHECAGEM DE RESULTADOS
     if (promocoesParaExibir.length === 0) {
@@ -176,33 +176,33 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
         const desconto = calcularDesconto(promocao.precoAntigo, promocao.precoNovo);
 
         // 🎯 FIX 1: O badge é renderizado se desconto não for null (ou seja, 0 ou um valor real)
-        const discountBadgeHtml = desconto !== null
-            ? `<span class="discount-badge">-${desconto}%</span>`
+        const discountBadgeHtml = desconto !== null 
+            ? `<span class="discount-badge">-${desconto}%</span>` 
             : '';
 
         // Renderização dos Cupons Relacionados
         let cuponsHtml = '';
         const cuponsRelacionadosIds = promocao.cuponsRelacionados || [];
-
+        
         const cuponsAtivosRelacionados = cuponsRelacionadosIds
-            .map(cupomId => cuponsAtivosMap.get(cupomId))
-            .filter(cupom => cupom);
+            .map(cupomId => cuponsAtivosMap.get(cupomId)) 
+            .filter(cupom => cupom); 
 
         if (cuponsAtivosRelacionados.length > 0) {
-            cuponsHtml += '<div class="coupon-badges mt-2">';
-            cuponsAtivosRelacionados.forEach(cupom => {
-                cuponsHtml += `
+             cuponsHtml += '<div class="coupon-badges mt-2">';
+             cuponsAtivosRelacionados.forEach(cupom => {
+                 cuponsHtml += `
                      <button type="button" class="btn btn-sm btn-coupon me-1 mb-1" 
                              title="${cupom.descricao}"
                              onclick="copiarCupom('${cupom.codigo}', '${cupom.link}')">
                          <i class="bi bi-ticket"></i> ${cupom.codigo}
                      </button>
                  `;
-            });
-            cuponsHtml += '</div>';
+             });
+             cuponsHtml += '</div>';
         } else {
-            // Renderiza o badge "Nenhum Cupom"
-            cuponsHtml = `
+             // Renderiza o badge "Nenhum Cupom"
+             cuponsHtml = `
                 <div class="coupon-badges mt-2">
                     <span class="btn btn-sm btn-coupon-disabled me-1 mb-1" 
                           title="Nenhum cupom disponível para este produto">
@@ -211,13 +211,13 @@ async function carregarPromocoes(promocoesParaExibir = null, isFiltered = false)
                 </div>
              `;
         }
-
+        
         // 🎯 FIX 2: Define o HTML do Preço Antigo
         // Renderiza se desconto for diferente de null E o precoAntigo for maior que zero.
         const oldPriceHtml = desconto !== null && promocao.precoAntigo > 0
             ? `<span class="old-price me-2">${formatarPreco(promocao.precoAntigo)}</span>`
             : '';
-
+        
         // Criação do Card HTML
         const card = document.createElement('div');
         card.className = 'col-lg-3 col-md-4 col-sm-6';
@@ -703,33 +703,33 @@ async function inicializarPainel() {
     }
 
     // Carrega o ID e os dados do admin logado (rápido, mas importante para segurança/ID)
-    await carregarDadosAdmin();
-
+    await carregarDadosAdmin(); 
+    
     // 2. 🎯 CARREGAMENTO DE DADOS CRÍTICOS (USANDO AWAIT)
-
+    
     // Deve ser carregado primeiro para preencher a variável global 'cliques'
-    await carregarDadosCliques();
+    await carregarDadosCliques(); 
 
     // Promocoes e Admins podem carregar em paralelo (se não dependessem de cliques)
     // Mas vamos carregar as promoções primeiro, pois o dashboard depende de 'promocoesPainel'
     await carregarPromocoesNaTabela();
     await carregarAdministradoresNaTabela();
     await carregarCuponsNaTabela();
-
+    
     // 3. INICIALIZAÇÃO DE COMPONENTES DE INTERFACE
-
+    
     // Inicializa a navegação e listeners de formulários
     inicializarNavegacao();
-    inicializarFormularios();
-
+    inicializarFormularios(); 
+    
     // 4. ATUALIZAÇÃO DE ESTATÍSTICAS (Dependem de dados prontos)
-
+    
     // O Dashboard agora calcula o Total de Cliques e Produto Mais Clicado
-    inicializarDashboard();
-
+    inicializarDashboard(); 
+    
     // A tabela de cliques no painel é populada com dados recém-buscados
     carregarCliquesNaTabela();
-
+    
     // Carrega o dropdown de cupons para o formulário de cadastro de promoção
     carregarCuponsParaSelecao();
 }
@@ -761,10 +761,10 @@ async function cadastrarPromocao() {
     const loja = document.getElementById('produto-loja').value;
     const imagem = document.getElementById('produto-imagem').value || 'https://via.placeholder.com/300x200/6c757d/ffffff?text=Produto+Sem+Imagem';
     const link = document.getElementById('produto-link').value;
-
+    
     // 🎯 AJUSTE CRÍTICO AQUI: Captura o valor único do SELECT
     const cupomSelecionadoId = document.getElementById('cupons-relacionados').value;
-
+    
     // Converte o valor único em um Array:
     // Se o ID for válido e não vazio, cria um array com esse ID. Se for vazio (''), cria um array vazio [].
     const cuponsRelacionados = cupomSelecionadoId ? [cupomSelecionadoId] : [];
@@ -787,7 +787,7 @@ async function cadastrarPromocao() {
         imagem,
         link,
         // Envia o Array corretamente formatado
-        cuponsRelacionados: cuponsRelacionados
+        cuponsRelacionados: cuponsRelacionados 
     };
 
     try {
@@ -808,7 +808,7 @@ async function cadastrarPromocao() {
 
         // NOVO: Tratamento de erro 404 para edição
         if (metodoHttp === 'PUT' && response.status === 404) {
-            throw new Error('A promoção não foi encontrada no servidor. A edição falhou.');
+             throw new Error('A promoção não foi encontrada no servidor. A edição falhou.');
         }
 
         if (!response.ok) {
@@ -968,7 +968,7 @@ async function editarPromocao(id) {
 
     // 1. Pré-carrega a lista de cupons no dropdown (necessário antes de selecionar)
     await carregarCuponsParaSelecao(promocao._id);
-
+    
     // 2. Configurar o ID Oculto para o PUT (Edição)
     document.getElementById('produto-id-hidden').value = id;
 
@@ -986,13 +986,13 @@ async function editarPromocao(id) {
     const cuponsSelect = document.getElementById('cupons-relacionados');
     if (cuponsSelect) {
         // Deseleciona o valor atual (caso haja)
-        cuponsSelect.value = "";
+        cuponsSelect.value = ""; 
 
         // Se houver cupons relacionados salvos, seleciona o primeiro (e único)
         if (promocao.cuponsRelacionados && promocao.cuponsRelacionados.length > 0) {
             const primeiroCupomId = promocao.cuponsRelacionados[0];
             // Define o valor do select (que é o ID do cupom)
-            cuponsSelect.value = primeiroCupomId;
+            cuponsSelect.value = primeiroCupomId; 
         }
     }
 
@@ -2126,7 +2126,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
 
     // A rota /api/cupons retorna apenas cupons ativos (não expirados)
     try {
-        const response = await fetch('/api/cupons');
+        const response = await fetch('/api/cupons'); 
 
         if (!response.ok) {
             throw new Error('Falha ao carregar cupons ativos.');
@@ -2136,10 +2136,10 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         cuponsAtivosParaSelecao = cuponsAtivos; // Atualiza a variável global
 
         let htmlOptions = '';
-
+        
         // 🎯 AJUSTE CRÍTICO: Adiciona a opção "Nenhum Cupom" com valor vazio
         htmlOptions += '<option value="">--- NENHUM CUPOM ---</option>';
-
+        
         if (cuponsAtivos.length === 0) {
             htmlOptions = '<option value="" selected>Nenhum cupom ativo encontrado</option>';
             selectElement.innerHTML = htmlOptions;
@@ -2152,7 +2152,7 @@ async function carregarCuponsParaSelecao(promocaoId = null) {
         });
 
         selectElement.innerHTML = htmlOptions;
-
+        
         // Se estivermos em modo de edição, a função editarPromocao() fará a seleção.
 
     } catch (error) {
@@ -2176,7 +2176,7 @@ async function carregarDadosCliques() {
 
         if (response.ok) {
             // 🚨 ATUALIZA A VARIÁVEL GLOBAL 'cliques' com dados reais
-            window.cliques = await response.json();
+            window.cliques = await response.json(); 
         } else {
             console.error("Falha ao buscar dados de cliques da API.");
             showToast("Falha ao carregar estatísticas de cliques.", 'warning');
