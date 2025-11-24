@@ -46,11 +46,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#" data-section="gerenciar-lojas">
-                        <i class="bi bi-shop"></i> <span>Gerenciar Lojas</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="#" data-section="configuracoes">
                         <i class="bi bi-gear"></i> <span>Configurações</span>
                     </a>
@@ -190,7 +185,13 @@
                     <div class="col-md-4 mb-3">
                         <label for="produto-loja" class="form-label">Loja</label>
                         <select class="form-select" id="produto-loja" name="loja" required>
-                            <option value="">Carregando lojas...</option>
+                            <option value="">Selecione uma loja</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Shopee">Shopee</option>
+                            <option value="Magazine Luiza">Magazine Luiza</option>
+                            <option value="Mercado Livre">Mercado Livre</option>
+                            <option value="AliExpress">AliExpress</option>
+                            <option value="Americanas">Americanas</option>
                         </select>
                     </div>
                 </div>
@@ -310,58 +311,6 @@
                             <tbody id="tabela-cupons">
                                 <tr>
                                     <td colspan="4" class="text-center text-muted">Carregando cupons...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="gerenciar-lojas" class="content-section">
-            <h2 class="section-title">Gerenciar Lojas</h2>
-
-            <div class="row">
-                <div class="col-md-5">
-                    <h4>Cadastrar / Editar Loja</h4>
-                    <form id="form-cadastro-loja">
-                        <input type="hidden" id="loja-id-hidden" value="">
-
-                        <div class="mb-3">
-                            <label for="loja-nome" class="form-label">Nome da Loja</label>
-                            <input type="text" class="form-control" id="loja-nome" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="loja-url" class="form-label">URL Principal (Opcional)</label>
-                            <input type="url" class="form-control" id="loja-url">
-                        </div>
-                        <div class="mb-3">
-                            <label for="loja-logo" class="form-label">URL do Logo (Opcional)</label>
-                            <input type="url" class="form-control" id="loja-logo">
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Salvar Loja</button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="limparFormularioLoja()">
-                                Limpar Formulário
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="col-md-7">
-                    <h4>Lojas Cadastradas</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Nome</th>
-                                    <th>URL</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabela-lojas">
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Carregando lojas...</td>
                                 </tr>
                             </tbody>
                         </table>
